@@ -16,7 +16,7 @@ class JcProxyMethod {
     private String appName;
     private boolean instanceFilter;
     private final Map<String, Integer> paramNameIdxMap = new HashMap<>(); //<>
-    Class<?> returnType = null;
+    private Class<?> returnType = null;
 
     public String getAppName() {
         return appName;
@@ -32,6 +32,10 @@ class JcProxyMethod {
 
     public Class<?> getReturnType() {
         return returnType;
+    }
+
+    public void setReturnType(Class<?> returnType) {
+        this.returnType = returnType;
     }
 
     public void addInstanceFilterParam(String paramName, Integer idx) {

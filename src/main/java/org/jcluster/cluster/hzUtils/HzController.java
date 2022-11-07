@@ -15,6 +15,7 @@ import org.jcluster.messages.Destination;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jcluster.bean.JcAppInstance;
 
 /**
  *
@@ -22,31 +23,33 @@ import java.util.logging.Logger;
  */
 public class HzController {
 
-    private String appId;
-    private final IMap<String, Destination> map;
+//    private String appId;
+    private final IMap<String, JcAppInstance> map;
     private final Config hzConfig = new Config();
     private final HazelcastInstance hz;
     private static HzController INSTANCE = null;
 
     private HzController() {
-        hzConfig.setClusterName("hz-lws-cluster");
-        JoinConfig join = new JoinConfig();
-        DiscoveryConfig discoveryConfig = join.getDiscoveryConfig();
-        
-        hzConfig.getNetworkConfig().setJoin(join);
+        hzConfig.setClusterName("hz-jc-cluster");
+        setDiscoveryConfig();
 
         hz = Hazelcast.newHazelcastInstance(hzConfig);
+        
         map = hz.getMap("jc-app-map");
+        
+        map.addEntryListener(new ConnectionCallback(), true);
         LifecycleService lifeCycle = hz.getLifecycleService();
         lifeCycle.addLifecycleListener(new HzLifeCycleListener());
         hz.addDistributedObjectListener(new HzDistrObjectListener());
     }
+    
+    private void setDiscoveryConfig(){
+        JoinConfig join = new JoinConfig();
+        DiscoveryConfig discoveryConfig = join.getDiscoveryConfig();
+        hzConfig.getNetworkConfig().setJoin(join);
+    }
 
-    public static HzController getInstance() throws Exception {
-
-        if (INSTANCE != null && INSTANCE.appId == null) {
-            throw new Exception();
-        }
+    public static HzController getInstance() {
 
         if (INSTANCE == null) {
             INSTANCE = new HzController();
@@ -55,50 +58,16 @@ public class HzController {
         return INSTANCE;
     }
 
-    public static HzController init(String appId) {
-
-        if (INSTANCE == null) {
-            try {
-                INSTANCE = getInstance();
-                INSTANCE.setAppId(appId);
-            } catch (Exception ex) {
-                Logger.getLogger(HzController.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
-        return INSTANCE;
-    }
-
-    public String getAppId() {
-        return appId;
-    }
-
-    public void setAppId(String appId) {
-        this.appId = appId;
-    }
-
-    public IMap<String, Destination> getMap() {
+    public IMap<String, JcAppInstance> getMap() {
         return map;
     }
 
     public void showConnected() {
-        for (Map.Entry<String, Destination> entry : map.entrySet()) {
-            String connectionId = entry.getKey();
-            String serverId = entry.getValue().getServerId();
+        for (Map.Entry<String, JcAppInstance> entry : map.entrySet()) {
+            String appId = entry.getKey();
+            String appName = entry.getValue().getAppName();
 
-            System.out.println(connectionId + " is online on server: " + serverId);
-        }
-    }
-
-    public static void put(Destination msg) {
-        if (INSTANCE.appId != null) {
-            INSTANCE.map.put(msg.getServerId(), msg);
-        }
-    }
-
-    public static void remove(String id) {
-        if (INSTANCE.appId != null) {
-            INSTANCE.map.remove(id);
+            System.out.println(appId + " is online as type: " + appName);
         }
     }
 

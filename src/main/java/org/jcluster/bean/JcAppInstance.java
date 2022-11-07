@@ -4,21 +4,28 @@
  */
 package org.jcluster.bean;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import org.apache.commons.lang3.RandomStringUtils;
 
 /**
  *
  * @author henry Created by JcManager for each instance
  */
-public class JcAppInstance {
+public class JcAppInstance implements Serializable {
     //add whatever we need to represent our instances
 
+    private String appName = "APP_INSTANCE";
     private String instanceId;
     private String ipAddress;
     private int ipPort;
     private final Map<String, HashSet<Object>> filterMap = new HashMap<>();
+
+    public JcAppInstance() {
+        this.instanceId = RandomStringUtils.random(16, true, true);;
+    }
 
     public String getInstanceId() {
         return instanceId;
@@ -46,6 +53,14 @@ public class JcAppInstance {
 
     public Map<String, HashSet<Object>> getFilterMap() {
         return filterMap;
+    }
+
+    public String getAppName() {
+        return appName;
+    }
+
+    public void setAppName(String appName) {
+        this.appName = appName;
     }
 
 }

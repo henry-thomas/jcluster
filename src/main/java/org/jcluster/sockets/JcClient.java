@@ -55,7 +55,6 @@ public class JcClient implements Runnable, IConnection {
         //  Socket to talk to server
 //        context = jcCtx.getContext();
         Thread.currentThread().setName("JcClient-Thread");
-        System.out.println("Connecting to server");
 
         socket = context.createSocket(SocketType.REQ);
         socket.setReceiveTimeOut(requestTimeout);

@@ -11,6 +11,8 @@ import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import org.jcluster.cluster.ClusterManager;
+import org.jcluster.cluster.JcFactory;
 
 /**
  *
@@ -40,7 +42,6 @@ public class LifecycleListener implements ServletContextListener {
 //            Logger.getLogger(LifecycleListener.class.getName()).log(Level.SEVERE, null, ex);
 //        }
 //    }
-
     @Override
     public void contextInitialized(ServletContextEvent contextEvent) {
 //        init();
@@ -51,7 +52,8 @@ public class LifecycleListener implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent contextEvent) {
-        submit.cancel(true);
+//        submit.cancel(true);
+        JcFactory.getManager().destroy();
         LOG.info("LifecycleListener: contextDestroyed()");
     }
 

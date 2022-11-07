@@ -10,6 +10,11 @@ package org.jcluster.cluster;
  */
 public class JcFactory {
 
+    public static ClusterManager initManager(String appName, String ipAddress, Integer port) {
+        return ClusterManager.getInstance().initConfig(appName, ipAddress, port);
+//        return ClusterManager.getInstance();
+    }
+
     public static ClusterManager getManager() {
         return ClusterManager.getInstance();
     }

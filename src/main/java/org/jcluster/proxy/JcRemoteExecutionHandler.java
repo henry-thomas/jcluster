@@ -36,7 +36,10 @@ public class JcRemoteExecutionHandler implements InvocationHandler, Serializable
     //caches different ways to call this method
     private JcProxyMethod initProxyMethod(Method method, Object[] args) {
         JcProxyMethod proxyMethod = new JcProxyMethod();
+        
         Class<?> returnType = method.getReturnType();
+        proxyMethod.setReturnType(returnType);
+        
         JcRemote jcRemoteAnn = method.getAnnotation(JcRemote.class);
         if (jcRemoteAnn != null) {
             proxyMethod.setAppName(jcRemoteAnn.appName());

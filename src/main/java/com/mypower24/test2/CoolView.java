@@ -32,7 +32,7 @@ public class CoolView implements Serializable {
 //    @Inject
 //    TestIFace prnt;
     @Inject
-    IBusinessMethod iFace;
+    Instance<IBusinessMethod> iFace;
 //    @EJB
 //    IBusinessMethod iFace;
 
@@ -60,7 +60,7 @@ public class CoolView implements Serializable {
 //            serviceObj = (IBusinessMethod) ctx.lookup(jndiName);
 //        result = fn.doSomething();
 
-        result = iFace.execBusinessMethod();
+        result = iFace.get().execBusinessMethod();
     }
 
     public String getResult() {

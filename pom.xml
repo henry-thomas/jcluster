@@ -5,7 +5,7 @@
     <artifactId>jcluster</artifactId>
     <version>1.0.1</version>
     <packaging>war</packaging>
-    <name>Client</name>
+    <name>jcluster</name>
     
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -37,8 +37,8 @@
         </dependency>
         <dependency>
             <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast</artifactId>
-            <version>5.1.4</version>
+            <artifactId>hazelcast-all</artifactId>
+            <version>4.2.4</version>
         </dependency>
     </dependencies>
     

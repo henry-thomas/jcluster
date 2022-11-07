@@ -8,6 +8,8 @@ import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.listener.EntryAddedListener;
 import com.hazelcast.map.listener.EntryRemovedListener;
 import com.hazelcast.map.listener.EntryUpdatedListener;
+import java.util.logging.Logger;
+import org.jcluster.bean.JcAppInstance;
 
 /**
  *
@@ -15,9 +17,11 @@ import com.hazelcast.map.listener.EntryUpdatedListener;
  */
 public class ConnectionCallback implements EntryAddedListener<String, String>, EntryRemovedListener<String, String>, EntryUpdatedListener<String, String> {
 
+    private static final Logger LOG = Logger.getLogger(ConnectionCallback.class.getName());
+
     @Override
     public void entryAdded(EntryEvent<String, String> event) {
-        System.out.println(event.getValue());
+        LOG.info(event.getValue());
     }
 
     @Override
