@@ -4,16 +4,12 @@
  */
 package org.jcluster.sockets;
 
-import org.jcluster.sockets.JcContext;
 import org.jcluster.messages.JcMessage;
 import org.jcluster.utils.MessageUtils;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;

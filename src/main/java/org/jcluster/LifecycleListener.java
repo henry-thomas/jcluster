@@ -23,8 +23,8 @@ public class LifecycleListener implements ServletContextListener {
     private static final Logger LOG = Logger.getLogger(LifecycleListener.class.getName());
     private Future<?> submit;
 
-    @Inject
-    JcServer server;
+//    @Inject
+//    JcServer server;
 
 //    public void init() {
 //        try {

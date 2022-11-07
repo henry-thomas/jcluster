@@ -18,7 +18,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.ejb.Singleton;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Default;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
@@ -27,20 +29,21 @@ import org.zeromq.ZMQ;
  *
  * @author henry
  */
-@ApplicationScoped
+//@ApplicationScoped
 public class JcServer implements Runnable, IJcServerSocket {
 
     private static final Logger LOG = Logger.getLogger(JcServer.class.getName());
 
 //    private Map<String, Method> commands = new HashMap<>();
     private ZMQ.Socket socket;
-    private final String bindAddress = "tcp://localhost:5555";
+    private final String bindAddress;
 
 //    @Inject
 //    JcContext jcCtx;
     private ZContext context = JcContext.getInstance().getContext();
 
-    public JcServer() {
+    public JcServer(String bindAddress) {
+        this.bindAddress = bindAddress;
     }
 
     @Override
@@ -53,7 +56,7 @@ public class JcServer implements Runnable, IJcServerSocket {
         socket.bind(bindAddress);
         while (!Thread.currentThread().isInterrupted()) {
             try {
-                LOG.info("Waiting for message...");
+                LOG.log(Level.INFO, "JcServer running at: {0}", bindAddress);
                 byte[] req = socket.recv();
 
 //                ZMsg recvMsg = ZMsg.recvMsg(socket);
@@ -61,7 +64,7 @@ public class JcServer implements Runnable, IJcServerSocket {
 
                 String jndiName = request.getServiceName(); //using serviceName for service/class name for now
 //                String jndi = "com.mypower24.smd.rar.lib.IBusinessMethod#com.mypower24.smd.rar.lib.IBusinessMethod";
-                IBusinessMethod service = ServiceLookup.getService(jndiName);
+                Object service = ServiceLookup.getService(jndiName);
 
                 //To be cached later
                 Map<String, Method> commands = new HashMap<>();

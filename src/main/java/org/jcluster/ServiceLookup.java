@@ -15,11 +15,11 @@ import javax.naming.NamingException;
  */
 public class ServiceLookup {
 
-    public static IBusinessMethod getService(String jndiName) {
-        IBusinessMethod serviceObj = null;
+    public static Object getService(String jndiName) {
+        Object serviceObj = null;
         try {
             InitialContext ctx = new InitialContext();
-            serviceObj = (IBusinessMethod) ctx.lookup(jndiName);
+            serviceObj = ctx.lookup(jndiName);
             return serviceObj;
         } catch (NamingException ex) {
             Logger.getLogger(ServiceLookup.class.getName()).log(Level.SEVERE, null, ex);

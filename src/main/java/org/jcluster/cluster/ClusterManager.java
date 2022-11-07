@@ -10,9 +10,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.ejb.PostActivate;
+import javax.inject.Inject;
 import org.jcluster.bean.JcAppInstance;
 import org.jcluster.cluster.hzUtils.HzController;
+import org.jcluster.sockets.JcServer;
 
 /**
  *
@@ -30,10 +34,11 @@ public final class ClusterManager {
     private boolean running = false;
     private boolean configDone = false;
     private Future<?> submit;
-    ExecutorService exec = Executors.newSingleThreadExecutor();
+    ExecutorService exec;
     private final JcAppInstance jcAppInstance = new JcAppInstance();
 
     private ClusterManager() {
+        exec = Executors.newFixedThreadPool(5);
         HzController hzController = HzController.getInstance();
         appMap = hzController.getMap();
     }
@@ -60,9 +65,13 @@ public final class ClusterManager {
             if (!configDone) {
                 LOG.warning("JCLUSTER -- App instance is not configured, using default settings. Consider calling JcFactory.initManager(appName, ipAddress, port)");
             }
+
             LOG.info("JCLUSTER -- Startup...");
 
             submit = exec.submit(this::initMainThread);
+            
+            String bindAddress = "tcp://" + jcAppInstance.getIpAddress() + ":" + jcAppInstance.getIpPort();
+            exec.submit(new JcServer(bindAddress));
             running = true;
         }
     }

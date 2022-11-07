@@ -2,20 +2,31 @@ package org.jcluster.sockets;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.ejb.EJB;
+import javax.ejb.Singleton;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import org.zeromq.ZContext;
+
 /**
  *
  * @author henry
  */
-@ApplicationScoped
+@Singleton
 public class JcContext {
 
     private Set<JcClient> connSet = new HashSet<>();
     private final ZContext context = new ZContext();
 
     public JcContext() {
+    }
+    
+    @PostConstruct
+    public void onStartup(){
+        
     }
 
     public static JcContext getInstance() {
@@ -26,6 +37,7 @@ public class JcContext {
 
         private static final JcContext INSTANCE = new JcContext();
     }
+
     public ZContext getContext() {
         return context;
     }

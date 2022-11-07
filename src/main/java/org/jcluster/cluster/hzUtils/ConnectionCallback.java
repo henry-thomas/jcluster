@@ -8,6 +8,7 @@ import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.listener.EntryAddedListener;
 import com.hazelcast.map.listener.EntryRemovedListener;
 import com.hazelcast.map.listener.EntryUpdatedListener;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jcluster.bean.JcAppInstance;
 
@@ -15,23 +16,23 @@ import org.jcluster.bean.JcAppInstance;
  *
  * @author henry
  */
-public class ConnectionCallback implements EntryAddedListener<String, String>, EntryRemovedListener<String, String>, EntryUpdatedListener<String, String> {
+public class ConnectionCallback implements EntryAddedListener<String, JcAppInstance>, EntryRemovedListener<String, JcAppInstance>, EntryUpdatedListener<String, JcAppInstance> {
 
     private static final Logger LOG = Logger.getLogger(ConnectionCallback.class.getName());
 
     @Override
-    public void entryAdded(EntryEvent<String, String> event) {
-        LOG.info(event.getValue());
+    public void entryAdded(EntryEvent<String, JcAppInstance> event) {
+        LOG.log(Level.INFO, "ConnectionCallback entryAdded() {0}", event.getKey());
     }
 
     @Override
-    public void entryRemoved(EntryEvent<String, String> event) {
-        System.out.println(event.getValue());
+    public void entryRemoved(EntryEvent<String, JcAppInstance> event) {
+        LOG.log(Level.INFO, "ConnectionCallback entryRemoved() {0}", event.getKey());
     }
 
     @Override
-    public void entryUpdated(EntryEvent<String, String> event) {
-        System.out.println(event.getValue());
+    public void entryUpdated(EntryEvent<String, JcAppInstance> event) {
+        LOG.log(Level.INFO, "ConnectionCallback entryUpdated() {0}", event.getKey());
     }
 
 }
