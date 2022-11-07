@@ -22,7 +22,7 @@ import java.util.Map;
 public class JcRemoteExecutionHandler implements InvocationHandler, Serializable {
 
 //    @EJB
-    private JcClient client;
+//    private JcClient client;
     private final Map<String, JcProxyMethod> methodCache = new HashMap<>();
 //    private static final Logger LOG = Logger.getLogger(JcRemoteExecutionHandler.class.getName());
 //    private final Object invocationTarget;
@@ -30,7 +30,7 @@ public class JcRemoteExecutionHandler implements InvocationHandler, Serializable
     public JcRemoteExecutionHandler() {
 //        this.invocationTarget = invocationTarget;
 //        this.client = client;
-        client = JcClient.getClient();
+//        client = JcClient.getClient();
     }
 
     //caches different ways to call this method
@@ -75,7 +75,7 @@ public class JcRemoteExecutionHandler implements InvocationHandler, Serializable
         jcMessage.setServiceName("com.mypower24.smd.rar.lib.IBusinessMethod#com.mypower24.smd.rar.lib.IBusinessMethod");
         jcMessage.setCommand(method.getName());
 //
-        JcMessage send = client.send(jcMessage);
+//        JcMessage send = client.send(jcMessage);
         return null;
 
     }//pojo with app name, filter for app instance

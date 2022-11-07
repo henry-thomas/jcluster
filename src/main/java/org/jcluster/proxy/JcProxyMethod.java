@@ -11,7 +11,7 @@ import java.util.Map;
  *
  * @author henry
  */
-class JcProxyMethod {
+public class JcProxyMethod {
 
     private String appName;
     private boolean instanceFilter;

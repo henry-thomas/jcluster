@@ -39,7 +39,7 @@ public class HzController {
         
         map.addEntryListener(new ConnectionCallback(), true);
         LifecycleService lifeCycle = hz.getLifecycleService();
-        lifeCycle.addLifecycleListener(new HzLifeCycleListener());
+//        lifeCycle.addLifecycleListener(new HzLifeCycleListener());
         hz.addDistributedObjectListener(new HzDistrObjectListener());
     }
     

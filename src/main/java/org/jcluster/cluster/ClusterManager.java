@@ -5,17 +5,19 @@
 package org.jcluster.cluster;
 
 import com.hazelcast.map.IMap;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.ejb.PostActivate;
-import javax.inject.Inject;
 import org.jcluster.bean.JcAppInstance;
 import org.jcluster.cluster.hzUtils.HzController;
+import org.jcluster.messages.JcMessage;
+import org.jcluster.proxy.JcProxyMethod;
+import org.jcluster.sockets.JcClient;
 import org.jcluster.sockets.JcServer;
 
 /**
@@ -33,7 +35,7 @@ public final class ClusterManager {
     private static final ClusterManager INSTANCE = new ClusterManager();
     private boolean running = false;
     private boolean configDone = false;
-    private Future<?> submit;
+    private Map<String, JcClient> clientMap = new HashMap<>();
     ExecutorService exec;
     private final JcAppInstance jcAppInstance = new JcAppInstance();
 
@@ -68,8 +70,8 @@ public final class ClusterManager {
 
             LOG.info("JCLUSTER -- Startup...");
 
-            submit = exec.submit(this::initMainThread);
-            
+            exec.submit(this::initMainThread);
+
             String bindAddress = "tcp://" + jcAppInstance.getIpAddress() + ":" + jcAppInstance.getIpPort();
             exec.submit(new JcServer(bindAddress));
             running = true;
@@ -92,12 +94,48 @@ public final class ClusterManager {
         }
     }
 
+    public void onNewMemberJoin(JcAppInstance instance) {
+        String bindAddress = "tcp://" + instance.getIpAddress() + ":" + instance.getIpPort();
+        JcClient jcClient = new JcClient(bindAddress);
+        JcClient putIfAbsent = clientMap.putIfAbsent(instance.getInstanceId(), jcClient);
+
+        if (putIfAbsent == null) {
+            try {
+                exec.submit(jcClient).get();
+            } catch (InterruptedException | ExecutionException ex) {
+                Logger.getLogger(ClusterManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        LOG.info(jcClient.printDescription());
+    }
+
+    public void onMemberLeave(JcAppInstance instance) {
+        JcClient remove = null;
+        if (instance != null && clientMap.containsKey(instance.getInstanceId())) {
+            clientMap.get(instance.getInstanceId()).destroy();
+            remove = clientMap.remove(instance.getInstanceId());
+        }
+
+        if (remove == null) {
+            LOG.log(Level.WARNING, "was never in the cluster!");
+        } else {
+            LOG.log(Level.INFO, "{0} was removed from the cluster", remove.printDescription());
+        }
+
+    }
+
+    public Object send(JcMessage message, JcProxyMethod method) {
+        //Logic to send to correct app
+        return new Object();
+    }
+
     @PreDestroy
     public void destroy() {
         LOG.info("JCLUSTER -- Stopping...");
-        submit.cancel(true);
-        exec.shutdownNow();
+//        exec.shutdownNow();
         appMap.remove(jcAppInstance.getInstanceId());
+
         running = false;
     }
 

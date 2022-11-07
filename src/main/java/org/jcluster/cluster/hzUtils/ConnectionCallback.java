@@ -11,6 +11,7 @@ import com.hazelcast.map.listener.EntryUpdatedListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jcluster.bean.JcAppInstance;
+import org.jcluster.cluster.JcFactory;
 
 /**
  *
@@ -22,11 +23,13 @@ public class ConnectionCallback implements EntryAddedListener<String, JcAppInsta
 
     @Override
     public void entryAdded(EntryEvent<String, JcAppInstance> event) {
+        JcFactory.getManager().onNewMemberJoin(event.getValue());
         LOG.log(Level.INFO, "ConnectionCallback entryAdded() {0}", event.getKey());
     }
 
     @Override
     public void entryRemoved(EntryEvent<String, JcAppInstance> event) {
+        JcFactory.getManager().onMemberLeave(event.getValue());
         LOG.log(Level.INFO, "ConnectionCallback entryRemoved() {0}", event.getKey());
     }
 

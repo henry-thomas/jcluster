@@ -18,12 +18,12 @@ import org.zeromq.ZMQ;
  *
  * @author henry
  */
-@Singleton
+//@Singleton
 public class JcClient implements Runnable, IConnection {
 
     private static final Logger LOG = Logger.getLogger(JcClient.class.getName());
     private int retriesLeft = 3; //A connection will try send 3 times before giving up. Then needs to be called explicitly to try again 3 times, until it succeeds.
-    private final String serverEndpoint = "tcp://localhost:5554";
+    private final String serverEndpoint;
     private final int requestTimeout = 2000;
 
 //    JcContext context = JcContext.getInstance();
@@ -31,20 +31,23 @@ public class JcClient implements Runnable, IConnection {
     ZMQ.Socket socket;
     ZMQ.Poller poller;
 
+    public JcClient(String bindAddress) {
+        serverEndpoint = bindAddress;
+    }
+
     @PostConstruct
     public void init() {
-        this.run();
+//        this.run();
     }
 //    public JcClient() {
 //        this.run();
 //    }
 
-    public static JcClient getClient() {
-        JcClient jcClient = new JcClient();
-        jcClient.run();
-        return jcClient;
-    }
-
+//    public static JcClient getClient() {
+//        JcClient jcClient = new JcClient();
+//        jcClient.run();
+//        return jcClient;
+//    }
     @Override
     public void run() {
 //        try ( ZContext context = JcContext.getInstance().getContext()) {
@@ -151,6 +154,10 @@ public class JcClient implements Runnable, IConnection {
         LOG.log(Level.INFO, "Closing socket");
 
         context.destroySocket(socket);
+    }
+
+    public String printDescription() {
+        return "Connected to Server at: " + serverEndpoint;
     }
 
 }
