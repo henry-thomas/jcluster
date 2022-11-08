@@ -8,6 +8,7 @@ import com.hazelcast.map.IMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -155,8 +156,8 @@ public final class ClusterManager {
         for (Map.Entry<String, JcAppInstance> entry : filterByAppNameMap.entrySet()) {
             String id = entry.getKey();
             JcAppInstance instance = entry.getValue();
-            
-            if(instance.getInstanceId().equals(jcAppInstance.getInstanceId())){
+
+            if (Objects.equals(instance.getInstanceId(), jcAppInstance.getInstanceId())) {
                 continue;
             }
 
