@@ -6,6 +6,7 @@ package org.jcluster.cluster;
 
 import com.hazelcast.map.IMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -35,9 +36,11 @@ public final class ClusterManager {
     private static final ClusterManager INSTANCE = new ClusterManager();
     private boolean running = false;
     private boolean configDone = false;
-    private Map<String, JcClient> clientMap = new HashMap<>();
+    private final Map<String, JcClient> clientMap = new HashMap<>();
     ExecutorService exec;
     private final JcAppInstance jcAppInstance = new JcAppInstance();
+    private String bindAddress;
+    private JcServer server;
 
     private ClusterManager() {
         exec = Executors.newFixedThreadPool(5);
@@ -47,6 +50,18 @@ public final class ClusterManager {
 
     protected static ClusterManager getInstance() {
         return INSTANCE;
+    }
+
+    public Map<String, HashSet<Object>> getFilterMap() {
+        return jcAppInstance.getFilterMap();
+    }
+
+    public void addFilter(String filterName, Object value) {
+        if (!jcAppInstance.getFilterMap().containsKey(filterName)) {
+            jcAppInstance.getFilterMap().put(filterName, new HashSet<>());
+        }
+        jcAppInstance.getFilterMap().get(filterName).add(value);
+        appMap.put(jcAppInstance.getInstanceId(), jcAppInstance);
     }
 
     protected ClusterManager initConfig(String appName, String ipAddress, Integer port) {
@@ -67,19 +82,19 @@ public final class ClusterManager {
             if (!configDone) {
                 LOG.warning("JCLUSTER -- App instance is not configured, using default settings. Consider calling JcFactory.initManager(appName, ipAddress, port)");
             }
-
             LOG.info("JCLUSTER -- Startup...");
-
+            bindAddress = "tcp://" + jcAppInstance.getIpAddress() + ":" + jcAppInstance.getIpPort();
+            server = new JcServer(bindAddress);
+            Thread t = new Thread(server);
+            t.start();
             exec.submit(this::initMainThread);
-
-            String bindAddress = "tcp://" + jcAppInstance.getIpAddress() + ":" + jcAppInstance.getIpPort();
-            exec.submit(new JcServer(bindAddress));
+//            exec.submit(jcServer);
             running = true;
         }
     }
 
     private void initMainThread() {
-        Thread.currentThread().setName("ClusterManager-mainThread");
+        Thread.currentThread().setName("JCLUSTER--ClusterManager-MainThread");
 
         //add this instance to the shared map
         appMap.put(jcAppInstance.getInstanceId(), jcAppInstance);
@@ -87,7 +102,7 @@ public final class ClusterManager {
         LOG.info("JCLUSTER -- Running...");
         while (running && !Thread.currentThread().isInterrupted()) {
             try {
-                Thread.sleep(1);
+                Thread.sleep(100);
             } catch (InterruptedException ex) {
                 Logger.getLogger(ClusterManager.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -95,16 +110,19 @@ public final class ClusterManager {
     }
 
     public void onNewMemberJoin(JcAppInstance instance) {
-        String bindAddress = "tcp://" + instance.getIpAddress() + ":" + instance.getIpPort();
-        JcClient jcClient = new JcClient(bindAddress);
+        String addr = "tcp://" + instance.getIpAddress() + ":" + instance.getIpPort();
+        if (addr.equals(bindAddress)) {
+            LOG.warning("Address already in use by server socket");
+            return;
+        }
+        JcClient jcClient = new JcClient(addr);
         JcClient putIfAbsent = clientMap.putIfAbsent(instance.getInstanceId(), jcClient);
 
         if (putIfAbsent == null) {
-            try {
-                exec.submit(jcClient).get();
-            } catch (InterruptedException | ExecutionException ex) {
-                Logger.getLogger(ClusterManager.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            //Automatically connecting to the instance
+            Thread t = new Thread(jcClient);
+            t.start();
+//            jcClient.run();
         }
 
         LOG.info(jcClient.printDescription());
@@ -117,23 +135,74 @@ public final class ClusterManager {
             remove = clientMap.remove(instance.getInstanceId());
         }
 
-        if (remove == null) {
-            LOG.log(Level.WARNING, "was never in the cluster!");
-        } else {
-            LOG.log(Level.INFO, "{0} was removed from the cluster", remove.printDescription());
-        }
-
     }
 
-    public Object send(JcMessage message, JcProxyMethod method) {
+    private boolean broadcast(JcMessage message) {
+        for (Map.Entry<String, JcClient> entry : clientMap.entrySet()) {
+//            String key = entry.getKey();
+            JcClient client = entry.getValue();
+            client.send(message);
+        }
+        return true;
+    }
+
+    public Object send(JcMessage message, JcProxyMethod proxyMethod, Object[] args) {
         //Logic to send to correct app
-        return new Object();
+
+        String appName = proxyMethod.getAppName();
+        Map<String, JcAppInstance> filterByAppNameMap = ClusterUtils.getInstance().filterByAppNameMap(appName);
+
+        for (Map.Entry<String, JcAppInstance> entry : filterByAppNameMap.entrySet()) {
+            String id = entry.getKey();
+            JcAppInstance instance = entry.getValue();
+            
+            if(instance.getInstanceId().equals(jcAppInstance.getInstanceId())){
+                continue;
+            }
+
+            if (!proxyMethod.isInstanceFilter()) {
+                //send all
+                broadcast(message);
+            } else {
+                //send to specific with filter
+                //we need do use the instance filter and appName to figure out
+                //how to get the JcAppInstance
+                Map<String, Integer> paramNameIdxMap = proxyMethod.getParamNameIdxMap();
+                for (Map.Entry<String, Integer> entry1 : paramNameIdxMap.entrySet()) {
+                    String filterName = entry1.getKey();
+                    Integer idx = entry1.getValue();
+
+                    if (instance.getFilterMap().containsKey(filterName)) {
+                        HashSet<Object> filterSet = instance.getFilterMap().get(filterName);
+
+                        if (filterSet.contains(args[idx])) {
+                            //send to this app
+                            LOG.log(Level.INFO, "FOUND WHO HAS [{0}] {1}", new Object[]{filterName, args[idx]});
+                            JcMessage send = clientMap.get(instance.getInstanceId()).send(message);
+                            return send.getResponse().getData();
+                        }
+
+                    } else {
+                        LOG.warning("Filter does not exist in map");
+                    }
+
+                }
+            }
+
+        }
+        return null;
     }
 
     @PreDestroy
     public void destroy() {
         LOG.info("JCLUSTER -- Stopping...");
-//        exec.shutdownNow();
+        exec.shutdownNow();
+        server.destroy();
+        for (Map.Entry<String, JcClient> entry : clientMap.entrySet()) {
+            String key = entry.getKey();
+            JcClient client = entry.getValue();
+            client.destroy();
+        }
         appMap.remove(jcAppInstance.getInstanceId());
 
         running = false;

@@ -16,6 +16,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JcInstanceFilter {
-
+    //Use this filter to get a parameter from a distributed map
     public String filterName() default "default";
 }

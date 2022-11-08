@@ -120,14 +120,16 @@ public class JcClient implements Runnable, IConnection {
 
 //        JcMessage response = null;
         if (response != null) {
-            return response;
+            msg.setResponse(response);
+            return msg;
         } else {
             LOG.log(Level.INFO, "Receive Timeout");
             response = new JcMessage();
             response.setData("Receive timeout");
+            msg.setResponse(response);
         }
 
-        return response;
+        return msg;
     }
 
     private JcMessage reconnect(JcMessage msg) {

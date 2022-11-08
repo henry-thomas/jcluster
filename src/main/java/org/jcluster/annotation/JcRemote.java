@@ -13,9 +13,9 @@ import java.lang.annotation.Target;
  *
  * @author henry
  */
-@Target({ElementType.TYPE})
+@Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JcRemote {
-
+    //This will help check which apps to send to
     public String appName() default "";
 }

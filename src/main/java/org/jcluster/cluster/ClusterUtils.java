@@ -19,13 +19,13 @@ import org.jcluster.cluster.hzUtils.HzController;
 public class ClusterUtils {
 
     private final IMap<String, JcAppInstance> appMap;
-    private final ClusterUtils INSTANCE = new ClusterUtils();
+    private static final ClusterUtils INSTANCE = new ClusterUtils();
 
     private ClusterUtils() {
         appMap = HzController.getInstance().getMap();
     }
 
-    public ClusterUtils getInstance() {
+    public static ClusterUtils getInstance() {
         return INSTANCE;
     }
 
@@ -58,5 +58,9 @@ public class ClusterUtils {
 
         return resultMap;
     }
+    
+//    public JcAppInstance getInstanceFromFilter(String filter){
+//        
+//    }
 
 }

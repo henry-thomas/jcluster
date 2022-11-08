@@ -14,6 +14,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
 import java.util.Map;
+import org.jcluster.cluster.JcFactory;
 
 /**
  *
@@ -74,6 +75,8 @@ public class JcRemoteExecutionHandler implements InvocationHandler, Serializable
         JcMessage jcMessage = new JcMessage();
         jcMessage.setServiceName("com.mypower24.smd.rar.lib.IBusinessMethod#com.mypower24.smd.rar.lib.IBusinessMethod");
         jcMessage.setCommand(method.getName());
+        
+        JcFactory.getManager().send(jcMessage, proxyMethod, args);
 //
 //        JcMessage send = client.send(jcMessage);
         return null;

@@ -60,7 +60,8 @@ public class CoolView implements Serializable {
 //            serviceObj = (IBusinessMethod) ctx.lookup(jndiName);
 //        result = fn.doSomething();
 
-        result = iFace.get().execBusinessMethod();
+//        result = iFace.get().execBusinessMethod();
+        result = iFace.get().execBusinessMethod(new Object(), "SLV012345");
     }
 
     public String getResult() {

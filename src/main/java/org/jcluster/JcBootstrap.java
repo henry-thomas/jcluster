@@ -35,7 +35,8 @@ public class JcBootstrap implements Extension {
         Object newProxyInstance = Proxy.newProxyInstance(classLoader, new Class[]{IBusinessMethod.class}, new JcRemoteExecutionHandler());
         event.addBean().types(IBusinessMethod.class).createWith(e -> newProxyInstance);
         
-        JcFactory.initManager("APP-1", "192.168.100.18", 4004);
+        JcFactory.initManager("lws", "192.168.100.18", 4004);
+        JcFactory.getManager().addFilter("loggerSerial", "SLV012345");
 
     }
 

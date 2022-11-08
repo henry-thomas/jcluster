@@ -43,4 +43,8 @@ public class JcProxyMethod {
         instanceFilter = true;
     }
 
+    public Map<String, Integer> getParamNameIdxMap() {
+        return paramNameIdxMap;
+    }
+
 }

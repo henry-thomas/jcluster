@@ -12,7 +12,10 @@ import org.apache.commons.lang3.RandomStringUtils;
 
 /**
  *
- * @author henry Created by JcManager for each instance
+ * @author henry 
+ * 
+ * Created by JcManager for each instance
+ * 
  */
 public class JcAppInstance implements Serializable {
     //add whatever we need to represent our instances
@@ -24,7 +27,7 @@ public class JcAppInstance implements Serializable {
     private final Map<String, HashSet<Object>> filterMap = new HashMap<>();
 
     public JcAppInstance() {
-        this.instanceId = RandomStringUtils.random(16, true, true);;
+        this.instanceId = RandomStringUtils.random(16, true, true);
     }
 
     public String getInstanceId() {
