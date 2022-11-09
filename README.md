@@ -69,5 +69,8 @@ public class LifecycleListener implements ServletContextListener {
     }
 }
 ```
+Remember to register the LifeCycleListener in WEB-INF/web.xml
+
+You probably also use another way instead of a ServletContextListener to initialize JcCluster, most likely a @Singleton bean will work just fine.
 
 Then inject remote interface and call the interface method you need. JCluster will make sure it ends up calling the correct instance!
