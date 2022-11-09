@@ -23,12 +23,10 @@ public interface IBusinessMethod extends Serializable {
 
 @JcRemote annotation is required to match the remote appName when you bootstrapped that application.
 
-@JcInstanceFilter is used to find a specific instance of an app with that app name, and will send the request to that specific instance.
+@JcInstanceFilter is used to find a specific instance of an app that holds the value of that parameter, and will send the request to that specific instance.
 
 In JcBootstrap class, register all remote interfaces:
 ```
-@Startup
-@Singleton
 @LocalBean //required for glassfish
 public class JcBootstrap implements Extension {
 
@@ -42,17 +40,11 @@ public class JcBootstrap implements Extension {
 
     }
 
-    @PostConstruct
-    public void init() {
-
-    }
 }
 ```
 
 
-In LifeCycleListerner, in contextInitialized method, call the JcFactory to initialize with the correct configuration, and add any filters you will need.
-
-Eg: 
+In LifeCycleListener, in contextInitialized method, call the JcFactory to initialize with the correct configuration, and add any filters you will need.
 
 ```
 public class LifecycleListener implements ServletContextListener {
