@@ -14,12 +14,11 @@ import org.jcluster.annotation.JcRemote;
  * @author henry
  */
 @Remote
+@JcRemote(appName = "lws")
 public interface IBusinessMethod extends Serializable {
-//       @Interceptors(LoggingIntercept.class)
 
     public String getJndiName();
 
-    @JcRemote(appName = "lws")
     public String execBusinessMethod(Object message, @JcInstanceFilter(filterName = "loggerSerial") String serialNumber);
 
 }

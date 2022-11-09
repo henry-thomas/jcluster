@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PreDestroy;
+import org.jcluster.messages.JcMsgResponse;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
@@ -45,12 +46,12 @@ public class JcServer implements Runnable, IJcServerSocket {
         socket.bind(bindAddress);
         while (!Thread.currentThread().isInterrupted()) {
             try {
-                LOG.log(Level.INFO, "JcServer running at: {0}", bindAddress);
+                LOG.log(Level.INFO, "JcServer listening at: {0}", bindAddress);
                 byte[] req = socket.recv();
 
                 JcMessage request = MessageUtils.dsrlz(req);
 
-                String jndiName = request.getServiceName(); //using serviceName for service/class name for now
+                String jndiName = request.getClassName(); //using serviceName for service/class name for now
                 Object service = ServiceLookup.getService(jndiName);
 
                 //To be cached later
@@ -63,18 +64,14 @@ public class JcServer implements Runnable, IJcServerSocket {
                     commands.put(method.getName(), method);
                 }
 
-                Method method = commands.get(request.getCommand());
-                Object result = method.invoke(service, request.getArgs().toArray());
+                Method method = commands.get(request.getMethodName());
+                Object result = method.invoke(service, request.getArgs());
                 //Do work, assign response here
-                JcMessage response = new JcMessage();
-                response.setData(result);
+                JcMsgResponse response = new JcMsgResponse(request.getRequestId(), result);
                 request.setResponse(response);
                 LOG.info("Sending response...");
                 socket.send(MessageUtils.srlz(request));
             } catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException ex) {
-                JcMessage response = new JcMessage();
-                response.setData(ex.getMessage());
-                socket.send(MessageUtils.srlz(response));
                 Logger.getLogger(JcServer.class.getName()).log(Level.SEVERE, null, ex);
             }
         }

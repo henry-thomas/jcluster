@@ -15,7 +15,8 @@ import org.jcluster.messages.Destination;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jcluster.bean.JcAppInstance;
+import org.jcluster.bean.JcAppCluster;
+import org.jcluster.bean.JcAppDescriptor;
 
 /**
  *
@@ -24,7 +25,7 @@ import org.jcluster.bean.JcAppInstance;
 public class HzController {
 
 //    private String appId;
-    private final IMap<String, JcAppInstance> map;
+    private final IMap<String, JcAppDescriptor> map;
     private final Config hzConfig = new Config();
     private final HazelcastInstance hz;
     private static HzController INSTANCE = null;
@@ -58,12 +59,12 @@ public class HzController {
         return INSTANCE;
     }
 
-    public IMap<String, JcAppInstance> getMap() {
+    public IMap<String, JcAppDescriptor> getMap() {
         return map;
     }
 
     public void showConnected() {
-        for (Map.Entry<String, JcAppInstance> entry : map.entrySet()) {
+        for (Map.Entry<String, JcAppDescriptor> entry : map.entrySet()) {
             String appId = entry.getKey();
             String appName = entry.getValue().getAppName();
 

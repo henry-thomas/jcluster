@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.jcluster.bean.JcAppInstance;
+import org.jcluster.bean.JcAppCluster;
+import org.jcluster.bean.JcAppDescriptor;
 import org.jcluster.cluster.hzUtils.HzController;
 
 /**
@@ -18,7 +19,7 @@ import org.jcluster.cluster.hzUtils.HzController;
  */
 public class ClusterUtils {
 
-    private final IMap<String, JcAppInstance> appMap;
+    private final IMap<String, JcAppDescriptor> appMap;
     private static final ClusterUtils INSTANCE = new ClusterUtils();
 
     private ClusterUtils() {
@@ -29,11 +30,11 @@ public class ClusterUtils {
         return INSTANCE;
     }
 
-    public List<JcAppInstance> filterByAppNameList(String filter) {
-        List<JcAppInstance> resultList = new ArrayList<>();
+    public List<JcAppDescriptor> filterByAppNameList(String filter) {
+        List<JcAppDescriptor> resultList = new ArrayList<>();
 
-        for (Map.Entry<String, JcAppInstance> entry : appMap.entrySet()) {
-            JcAppInstance instance = entry.getValue();
+        for (Map.Entry<String, JcAppDescriptor> entry : appMap.entrySet()) {
+            JcAppDescriptor instance = entry.getValue();
 
             if (instance.getAppName().equals(filter)) {
                 resultList.add(instance);
@@ -44,22 +45,22 @@ public class ClusterUtils {
         return resultList;
     }
 
-    public Map<String, JcAppInstance> filterByAppNameMap(String filter) {
-        Map<String, JcAppInstance> resultMap = new HashMap<>();
-
-        for (Map.Entry<String, JcAppInstance> entry : appMap.entrySet()) {
-            JcAppInstance instance = entry.getValue();
-
-            if (instance.getAppName().equals(filter)) {
-                resultMap.put(instance.getInstanceId(), instance);
-            }
-
-        }
-
-        return resultMap;
-    }
+//    public Map<String, JcAppCluster> filterByAppNameMap(String filter) {
+//        Map<String, JcAppCluster> resultMap = new HashMap<>();
+//
+//        for (Map.Entry<String, JcAppCluster> entry : appMap.entrySet()) {
+//            JcAppCluster instance = entry.getValue();
+//
+//            if (instance.getJcAppName().equals(filter)) {
+//                resultMap.put(instance.getInstanceId(), instance);
+//            }
+//
+//        }
+//
+//        return resultMap;
+//    }
     
-//    public JcAppInstance getInstanceFromFilter(String filter){
+//    public JcAppDescriptor getInstanceFromFilter(String filter){
 //        
 //    }
 

@@ -17,84 +17,53 @@ public class JcMessage implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private final int requestId;
-    private String command;
-    private String serviceName;
-    private final List<Object> args = new ArrayList<>(); //arguments for method execution
-    private Object data;
-    private Destination src;
-    private Destination dest;
-    private JcMsgType msgType;
-    private JcMessage response;
+    private final String methodName;
+    private final String className;
+    private final Object[] args; //arguments for method execution
+    private JcMsgResponse response;
+    private final Object lock = new Object(); //Sync on lock
 
     private static int MSG_ID_INCR = 0;
 
-    public JcMessage() {
-        this.requestId = MSG_ID_INCR;
-        MSG_ID_INCR++;
+    public JcMessage(String methodName, String className, Object[] args) {
+        this.methodName = methodName;
+        this.className = className;
+        this.args = args;
+        this.requestId = MSG_ID_INCR ++;
     }
 
-    public JcMessage getResponse() {
+    public JcMsgResponse getResponse() {
         return response;
     }
 
-    public void setResponse(JcMessage response) {
+    public void setResponse(JcMsgResponse response) {
         this.response = response;
+    }
+
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
     }
 
     public int getRequestId() {
         return requestId;
     }
 
-    public String getCommand() {
-        return command;
+    public String getMethodName() {
+        return methodName;
     }
 
-    public void setCommand(String command) {
-        this.command = command;
+    public String getClassName() {
+        return className;
     }
 
-    public Destination getSrc() {
-        return src;
-    }
-
-    public void setSrc(Destination src) {
-        this.src = src;
-    }
-
-    public Destination getDest() {
-        return dest;
-    }
-
-    public void setDest(Destination dest) {
-        this.dest = dest;
-    }
-
-    public JcMsgType getMsgType() {
-        return msgType;
-    }
-
-    public void setMsgType(JcMsgType msgType) {
-        this.msgType = msgType;
-    }
-
-    public String getServiceName() {
-        return serviceName;
-    }
-
-    public void setServiceName(String serviceName) {
-        this.serviceName = serviceName;
-    }
-
-    public List<Object> getArgs() {
+    public Object[] getArgs() {
         return args;
     }
 
-    public Object getData() {
-        return data;
+    public Object getLock() {
+        return lock;
     }
-
-    public void setData(Object data) {
-        this.data = data;
-    }
+    
+    
 
 }

@@ -8,6 +8,7 @@ import org.jcluster.messages.JcMessage;
 import org.jcluster.utils.MessageUtils;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jcluster.messages.JcMsgResponse;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
@@ -17,9 +18,9 @@ import org.zeromq.ZMQ;
  * @author henry
  */
 //@Singleton
-public class JcClient implements Runnable, IConnection {
+public class JcAppInstance implements Runnable, IConnection {
 
-    private static final Logger LOG = Logger.getLogger(JcClient.class.getName());
+    private static final Logger LOG = Logger.getLogger(JcAppInstance.class.getName());
     private int retriesLeft = 3; //A connection will try send 3 times before giving up. Then needs to be called explicitly to try again 3 times, until it succeeds.
     private final String serverEndpoint;
     private final int requestTimeout = 2000;
@@ -29,7 +30,7 @@ public class JcClient implements Runnable, IConnection {
     ZMQ.Socket socket;
     ZMQ.Poller poller;
 
-    public JcClient(String bindAddress) {
+    public JcAppInstance(String bindAddress) {
         serverEndpoint = bindAddress;
     }
 
@@ -78,7 +79,8 @@ public class JcClient implements Runnable, IConnection {
 
                     //Match sent message ID to received message ID here
                     response = MessageUtils.dsrlz(reply);
-                    if (response.getRequestId() == msg.getRequestId()) {
+                    JcMsgResponse msgRest = response.getResponse();
+                    if (msgRest.getRequestId() == msg.getRequestId()) {
                         LOG.log(Level.INFO, "Valid reply received: {0}", response.getRequestId());
                         retriesLeft = 3;
                         expect_reply = false;
@@ -95,8 +97,8 @@ public class JcClient implements Runnable, IConnection {
             }
 
         } catch (Exception e) {
-            response = new JcMessage();
-            response.setData(e.getMessage());
+//            response = new JcMsgResponse();
+//            response.setData(e.getMessage());
             LOG.warning(e.getMessage());
         }
 
@@ -104,9 +106,9 @@ public class JcClient implements Runnable, IConnection {
             return response;
         } else {
             LOG.log(Level.INFO, "Receive Timeout");
-            response = new JcMessage();
-            response.setData("Receive timeout");
-            msg.setResponse(response);
+//            response = new JcMessage();
+//            response.setData("Receive timeout");
+//            msg.setResponse(response);
         }
 
         return response;

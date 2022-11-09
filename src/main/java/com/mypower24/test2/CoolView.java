@@ -40,7 +40,7 @@ public class CoolView implements Serializable {
     }
 
     public void test() {
-        result = iFace.get().execBusinessMethod(new JcMessage(), "SLV01234");
+        result = iFace.get().execBusinessMethod(new DevMessage(), "SLV01234");
     }
 
     public String getResult() {

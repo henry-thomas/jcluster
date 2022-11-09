@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
  *
  * @author henry
  */
-@Target({ElementType.METHOD})
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JcRemote {
     //This will help check which apps to send to

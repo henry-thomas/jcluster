@@ -14,7 +14,7 @@ import org.zeromq.ZContext;
 @Singleton
 public class JcContext {
 
-    private Set<JcClient> connSet = new HashSet<>();
+    private Set<JcAppInstance> connSet = new HashSet<>();
     private final ZContext context = new ZContext();
 
     public JcContext() {

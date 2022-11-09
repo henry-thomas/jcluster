@@ -17,7 +17,7 @@ import org.apache.commons.lang3.RandomStringUtils;
  * Created by JcManager for each instance
  * 
  */
-public class JcAppInstance implements Serializable {
+public class JcAppDescriptor implements Serializable {
     //add whatever we need to represent our instances
 
     private String appName = "APP_INSTANCE";
@@ -26,7 +26,7 @@ public class JcAppInstance implements Serializable {
     private int ipPort;
     private final Map<String, HashSet<Object>> filterMap = new HashMap<>();
 
-    public JcAppInstance() {
+    public JcAppDescriptor() {
         this.instanceId = RandomStringUtils.random(16, true, true);
     }
 

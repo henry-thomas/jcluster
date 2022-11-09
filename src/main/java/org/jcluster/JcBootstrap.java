@@ -4,24 +4,19 @@
  */
 package org.jcluster;
 
-import org.jcluster.proxy.JcRemoteExecutionHandler;
 import java.lang.reflect.Proxy;
 import java.util.logging.Logger;
-import javax.annotation.PostConstruct;
 import javax.ejb.LocalBean;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.Extension;
+import org.jcluster.proxy.JcRemoteExecutionHandler;
 
 /**
  *
  * @author henry
  */
-@Startup
-@Singleton
 @LocalBean //required for glassfish
 public class JcBootstrap implements Extension {
 
@@ -32,11 +27,6 @@ public class JcBootstrap implements Extension {
         ClassLoader classLoader = IBusinessMethod.class.getClassLoader();
         Object newProxyInstance = Proxy.newProxyInstance(classLoader, new Class[]{IBusinessMethod.class}, new JcRemoteExecutionHandler());
         event.addBean().types(IBusinessMethod.class).createWith(e -> newProxyInstance);
-
-    }
-
-    @PostConstruct
-    public void init() {
 
     }
 
