@@ -6,7 +6,6 @@ package org.jcluster.proxy;
 
 import org.jcluster.annotation.JcRemote;
 import org.jcluster.annotation.JcInstanceFilter;
-import org.jcluster.sockets.JcClient;
 import org.jcluster.messages.JcMessage;
 import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
