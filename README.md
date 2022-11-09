@@ -43,7 +43,6 @@ public class JcBootstrap implements Extension {
     public void init() {
 
     }
-
 }
 
 
@@ -71,7 +70,6 @@ public class LifecycleListener implements ServletContextListener {
         JcFactory.getManager().destroy();
         LOG.info("LifecycleListener: contextDestroyed()");
     }
-
 }
 
 Then inject remote interface and call the interface method you need. JCluster will make sure it ends up calling the correct instance!
