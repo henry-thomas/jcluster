@@ -5,7 +5,9 @@
 package org.jcluster;
 
 import java.io.Serializable;
+import javax.ejb.EJB;
 import javax.ejb.Remote;
+import javax.ws.rs.core.Context;
 import org.jcluster.annotation.JcInstanceFilter;
 import org.jcluster.annotation.JcRemote;
 

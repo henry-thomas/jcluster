@@ -8,8 +8,6 @@ import org.jcluster.messages.JcMessage;
 import org.jcluster.utils.MessageUtils;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.PostConstruct;
-import javax.ejb.Singleton;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
@@ -35,30 +33,13 @@ public class JcClient implements Runnable, IConnection {
         serverEndpoint = bindAddress;
     }
 
-    @PostConstruct
-    public void init() {
-//        this.run();
-    }
-//    public JcClient() {
-//        this.run();
-//    }
-
-//    public static JcClient getClient() {
-//        JcClient jcClient = new JcClient();
-//        jcClient.run();
-//        return jcClient;
-//    }
     @Override
     public void run() {
-//        try ( ZContext context = JcContext.getInstance().getContext()) {
-        //  Socket to talk to server
-//        context = jcCtx.getContext();
         Thread.currentThread().setName("JcClient-Thread");
 
         socket = context.createSocket(SocketType.REQ);
         socket.setReceiveTimeOut(requestTimeout);
         socket.setSendTimeOut(requestTimeout);
-//        socket.setReconnectIVL(requestTimeout);
         socket.connect(serverEndpoint);
 
         poller = context.createPoller(1);
@@ -113,15 +94,14 @@ public class JcClient implements Runnable, IConnection {
                 }
             }
 
-//            reply = socket.recv(0);
         } catch (Exception e) {
-            response = reconnect(msg);
+            response = new JcMessage();
+            response.setData(e.getMessage());
+            LOG.warning(e.getMessage());
         }
 
-//        JcMessage response = null;
         if (response != null) {
-            msg.setResponse(response);
-            return msg;
+            return response;
         } else {
             LOG.log(Level.INFO, "Receive Timeout");
             response = new JcMessage();
@@ -129,7 +109,7 @@ public class JcClient implements Runnable, IConnection {
             msg.setResponse(response);
         }
 
-        return msg;
+        return response;
     }
 
     private JcMessage reconnect(JcMessage msg) {

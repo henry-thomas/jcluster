@@ -38,7 +38,7 @@ public final class ClusterManager {
     private boolean running = false;
     private boolean configDone = false;
     private final Map<String, JcClient> clientMap = new HashMap<>();
-    ExecutorService exec;
+    private final ExecutorService exec;
     private final JcAppInstance jcAppInstance = new JcAppInstance();
     private String bindAddress;
     private JcServer server;
@@ -112,10 +112,11 @@ public final class ClusterManager {
 
     public void onNewMemberJoin(JcAppInstance instance) {
         String addr = "tcp://" + instance.getIpAddress() + ":" + instance.getIpPort();
-        if (addr.equals(bindAddress)) {
-            LOG.warning("Address already in use by server socket");
+        if (Objects.equals(instance.getInstanceId(), jcAppInstance.getInstanceId())) {
             return;
         }
+        LOG.log(Level.INFO, "Connected to someone at: {0}", addr);
+
         JcClient jcClient = new JcClient(addr);
         JcClient putIfAbsent = clientMap.putIfAbsent(instance.getInstanceId(), jcClient);
 

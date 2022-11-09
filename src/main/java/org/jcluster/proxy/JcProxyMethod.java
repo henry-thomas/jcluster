@@ -14,6 +14,7 @@ import java.util.Map;
 public class JcProxyMethod {
 
     private String appName;
+    private String remoteJndiName;
     private boolean instanceFilter;
     private final Map<String, Integer> paramNameIdxMap = new HashMap<>(); //<>
     private Class<?> returnType = null;
@@ -45,6 +46,14 @@ public class JcProxyMethod {
 
     public Map<String, Integer> getParamNameIdxMap() {
         return paramNameIdxMap;
+    }
+
+    public String getRemoteJndiName() {
+        return remoteJndiName;
+    }
+
+    public void setRemoteJndiName(String remoteJndiName) {
+        this.remoteJndiName = remoteJndiName;
     }
 
 }

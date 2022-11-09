@@ -11,6 +11,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.inject.Named;
+import org.jcluster.messages.JcMessage;
 
 /**
  *
@@ -22,28 +23,12 @@ public class CoolView implements Serializable {
 
     private static final Logger LOG = Logger.getLogger(CoolView.class.getName());
 
-//    @Inject
-//    private SomeFunctionality fn;
-//    @Inject
-//    private JcClient client;
-//    
-//    @Resource(lookup = "")
-
-//    @Inject
-//    TestIFace prnt;
     @Inject
     Instance<IBusinessMethod> iFace;
-//    @EJB
-//    IBusinessMethod iFace;
+
 
     private long timeTaken = 0l;
     private String result;
-
-//    @PostConstruct
-//    public void init() {
-//        ClassLoader classLoader = IBusinessMethod.class.getClassLoader();
-//        iFace = (IBusinessMethod) Proxy.newProxyInstance(classLoader, new Class[]{IBusinessMethod.class}, new JcRemoteExecutionHandler(client));
-//    }
 
     public long getTimeTaken() {
 
@@ -55,13 +40,7 @@ public class CoolView implements Serializable {
     }
 
     public void test() {
-//        prnt.print("sad");
-//        InitialContext ctx = new InitialContext();
-//            serviceObj = (IBusinessMethod) ctx.lookup(jndiName);
-//        result = fn.doSomething();
-
-//        result = iFace.get().execBusinessMethod();
-        result = iFace.get().execBusinessMethod(new Object(), "SLV012345");
+        result = iFace.get().execBusinessMethod(new JcMessage(), "SLV01234");
     }
 
     public String getResult() {

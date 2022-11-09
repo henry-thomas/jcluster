@@ -15,7 +15,6 @@ import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.Extension;
-import org.jcluster.cluster.JcFactory;
 
 /**
  *
@@ -30,13 +29,9 @@ public class JcBootstrap implements Extension {
 
     public void afterBeanDiscovery(@Observes AfterBeanDiscovery event, BeanManager manager) {
         LOG.info("JcBootstrap afterBeanDiscovery()");
-
         ClassLoader classLoader = IBusinessMethod.class.getClassLoader();
         Object newProxyInstance = Proxy.newProxyInstance(classLoader, new Class[]{IBusinessMethod.class}, new JcRemoteExecutionHandler());
         event.addBean().types(IBusinessMethod.class).createWith(e -> newProxyInstance);
-        
-        JcFactory.initManager("lws", "192.168.100.18", 4004);
-        JcFactory.getManager().addFilter("loggerSerial", "SLV012345");
 
     }
 

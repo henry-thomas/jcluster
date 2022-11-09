@@ -2,13 +2,9 @@ package org.jcluster.sockets;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.ejb.EJB;
 import javax.ejb.Singleton;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import org.zeromq.ZContext;
 
 /**
