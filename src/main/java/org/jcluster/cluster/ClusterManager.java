@@ -110,24 +110,33 @@ public final class ClusterManager {
         }
     }
 
-    public void onNewMemberJoin(JcAppInstance instance) {
-        String addr = "tcp://" + instance.getIpAddress() + ":" + instance.getIpPort();
-        if (Objects.equals(instance.getInstanceId(), jcAppInstance.getInstanceId())) {
-            return;
+    public void onNewMemberJoin(JcAppInstance i) {
+
+        for (Map.Entry<String, JcAppInstance> entry : appMap.entrySet()) {
+
+            String id = entry.getKey();
+            JcAppInstance instance = entry.getValue();
+
+            String addr = "tcp://" + instance.getIpAddress() + ":" + instance.getIpPort();
+
+            if (clientMap.containsKey(id) || Objects.equals(instance.getInstanceId(), jcAppInstance.getInstanceId())) {
+                continue;
+            }
+
+            LOG.log(Level.INFO, "Connected to someone at: {0}", addr);
+
+            JcClient jcClient = new JcClient(addr);
+            JcClient putIfAbsent = clientMap.putIfAbsent(instance.getInstanceId(), jcClient);
+
+            if (putIfAbsent == null) {
+                //Automatically connecting to the instance
+                Thread t = new Thread(jcClient);
+                t.start();
+            }
+
+            LOG.info(jcClient.printDescription());
         }
-        LOG.log(Level.INFO, "Connected to someone at: {0}", addr);
 
-        JcClient jcClient = new JcClient(addr);
-        JcClient putIfAbsent = clientMap.putIfAbsent(instance.getInstanceId(), jcClient);
-
-        if (putIfAbsent == null) {
-            //Automatically connecting to the instance
-            Thread t = new Thread(jcClient);
-            t.start();
-//            jcClient.run();
-        }
-
-        LOG.info(jcClient.printDescription());
     }
 
     public void onMemberLeave(JcAppInstance instance) {

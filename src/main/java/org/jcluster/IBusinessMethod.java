@@ -5,9 +5,7 @@
 package org.jcluster;
 
 import java.io.Serializable;
-import javax.ejb.EJB;
 import javax.ejb.Remote;
-import javax.ws.rs.core.Context;
 import org.jcluster.annotation.JcInstanceFilter;
 import org.jcluster.annotation.JcRemote;
 
@@ -20,9 +18,6 @@ public interface IBusinessMethod extends Serializable {
 //       @Interceptors(LoggingIntercept.class)
 
     public String getJndiName();
-
-    @JcRemote(appName = "lws")
-    public String execBusinessMethod();
 
     @JcRemote(appName = "lws")
     public String execBusinessMethod(Object message, @JcInstanceFilter(filterName = "loggerSerial") String serialNumber);
