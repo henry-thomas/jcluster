@@ -70,6 +70,11 @@ public class LifecycleListener implements ServletContextListener {
 }
 ```
 Remember to register the LifeCycleListener in WEB-INF/web.xml
+```
+<listener>
+        <listener-class>org.jcluster.LifecycleListener</listener-class>
+</listener>
+```
 
 You probably also use another way instead of a ServletContextListener to initialize JcCluster, most likely a @Singleton bean will work just fine.
 
