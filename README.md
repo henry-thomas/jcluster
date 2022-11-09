@@ -10,6 +10,7 @@ To use:
 In META-INF folder, add a file called "javax.enterprise.inject.spi.Extension" with contents "org.jcluster.JcBootstrap"
 
 Create your remote interfaces if you haven't done so already, and annotate them using the provided annotations:
+```
 @Remote
 public interface IBusinessMethod extends Serializable {
 
@@ -18,12 +19,14 @@ public interface IBusinessMethod extends Serializable {
     @JcRemote(appName = "lws")
     public String execBusinessMethod(Object message, @JcInstanceFilter(filterName = "loggerSerial") String serialNumber);
 }
+```
 
 @JcRemote annotation is required to match the remote appName when you bootstrapped that application.
 
 @JcInstanceFilter is used to find a specific instance of an app with that app name, and will send the request to that specific instance.
 
 In JcBootstrap class, register all remote interfaces:
+```
 @Startup
 @Singleton
 @LocalBean //required for glassfish
@@ -44,12 +47,14 @@ public class JcBootstrap implements Extension {
 
     }
 }
+```
 
 
 In LifeCycleListerner, in contextInitialized method, call the JcFactory to initialize with the correct configuration, and add any filters you will need.
 
 Eg: 
 
+```
 public class LifecycleListener implements ServletContextListener {
 
     private static final Logger LOG = Logger.getLogger(LifecycleListener.class.getName());
@@ -71,5 +76,6 @@ public class LifecycleListener implements ServletContextListener {
         LOG.info("LifecycleListener: contextDestroyed()");
     }
 }
+```
 
 Then inject remote interface and call the interface method you need. JCluster will make sure it ends up calling the correct instance!
