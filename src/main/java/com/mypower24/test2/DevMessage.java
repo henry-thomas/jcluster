@@ -11,5 +11,5 @@ import java.io.Serializable;
  * @author henry
  */
 public class DevMessage implements Serializable{
-    
+    private String name = "nothing";
 }

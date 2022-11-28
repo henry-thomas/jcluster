@@ -65,7 +65,7 @@ public class JcProxyMethod {
         Class<?> returnType = method.getReturnType();
 //        proxyMethod.returnType = returnType;
 
-        JcRemote jcRemoteAnn = method.getAnnotation(JcRemote.class);
+        JcRemote jcRemoteAnn = method.getDeclaringClass().getAnnotation(JcRemote.class);
         String appName = "unknown";
         if (jcRemoteAnn != null) {
             appName = jcRemoteAnn.appName();

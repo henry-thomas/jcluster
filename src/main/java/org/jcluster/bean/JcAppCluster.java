@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import org.jcluster.messages.JcMessage;
 import org.jcluster.proxy.JcProxyMethod;
-import org.jcluster.sockets.JcAppInstance;
+import org.jcluster.sockets.Client.JcInstanceConnection;
 
 /**
  *
@@ -23,8 +23,8 @@ public class JcAppCluster {
     private static final Logger LOG = Logger.getLogger(JcAppCluster.class.getName());
 
     private final String jcAppName;
-    private final Map<String, JcAppInstance> instanceMap = new HashMap<>(); //connections for this app
-    private final Map<Integer, JcMessage> jcMsgMap = new ConcurrentHashMap<>();
+    private final Map<String, JcInstanceConnection> instanceMap = new HashMap<>(); //connections for this app
+//    private final Map<Integer, JcMessage> jcMsgMap = new ConcurrentHashMap<>();
 
     public JcAppCluster(String jcAppName) {
         this.jcAppName = jcAppName;
@@ -32,15 +32,18 @@ public class JcAppCluster {
 
     public Object send(JcProxyMethod proxyMethod, Object[] args, String sendInstanceId) {
         JcMessage msg = new JcMessage(proxyMethod.getMethodName(), proxyMethod.getClassName(), args);
+//        return null;
         return instanceMap.get(sendInstanceId).send(msg);
     }
 
     public boolean removeConnection(JcAppDescriptor instance) {
 
-        JcAppInstance instanceConnection = instanceMap.get(instance.getInstanceId());
-        instanceConnection.destroy();
+        JcInstanceConnection instanceConnection = instanceMap.get(instance.getInstanceId());
+        if (instanceConnection != null) {
+            instanceConnection.destroy();
+        }
 
-        JcAppInstance remove = instanceMap.remove(instance.getInstanceId());
+        JcInstanceConnection remove = instanceMap.remove(instance.getInstanceId());
         if (remove == null) {
             return false;
         }
@@ -50,22 +53,34 @@ public class JcAppCluster {
 
     public boolean broadcast(JcProxyMethod proxyMethod, Object[] args) {
         //if broadcast to 0 instances, fail. Otherwise return true
-        for (Map.Entry<String, JcAppInstance> entry : instanceMap.entrySet()) {
+        for (Map.Entry<String, JcInstanceConnection> entry : instanceMap.entrySet()) {
             String id = entry.getKey();
-            JcAppInstance instance = entry.getValue();
+            JcInstanceConnection instance = entry.getValue();
 
             JcMessage msg = new JcMessage(proxyMethod.getMethodName(), proxyMethod.getClassName(), args);
-            instance.send(msg);
+//            instance.send(msg);
         }
         return true;
+    }
+
+    public void addConnection(JcInstanceConnection conn) {
+        instanceMap.put(conn.getDesc().getInstanceId(), conn);
     }
 
     public String getJcAppName() {
         return jcAppName;
     }
 
-    public Map<String, JcAppInstance> getInstanceMap() {
+    public Map<String, JcInstanceConnection> getInstanceMap() {
         return instanceMap;
+    }
+
+    public void destroy() {
+        for (Map.Entry<String, JcInstanceConnection> entry : instanceMap.entrySet()) {
+            String key = entry.getKey();
+            JcInstanceConnection conn = entry.getValue();
+            conn.destroy();
+        }
     }
 
 }

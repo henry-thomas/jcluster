@@ -5,8 +5,6 @@
 package org.jcluster.messages;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  *
@@ -21,7 +19,7 @@ public class JcMessage implements Serializable {
     private final String className;
     private final Object[] args; //arguments for method execution
     private JcMsgResponse response;
-    private final Object lock = new Object(); //Sync on lock
+//    private final Object lock = new Object(); //Sync on lock
 
     private static int MSG_ID_INCR = 0;
 
@@ -40,9 +38,9 @@ public class JcMessage implements Serializable {
         this.response = response;
     }
 
-    public static long getSerialVersionUID() {
-        return serialVersionUID;
-    }
+//    public static long getSerialVersionUID() {
+//        return serialVersionUID;
+//    }
 
     public int getRequestId() {
         return requestId;
@@ -60,9 +58,9 @@ public class JcMessage implements Serializable {
         return args;
     }
 
-    public Object getLock() {
-        return lock;
-    }
+//    public Object getLock() {
+//        return lock;
+//    }
     
     
 

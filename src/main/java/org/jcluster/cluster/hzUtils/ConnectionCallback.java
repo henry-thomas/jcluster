@@ -29,7 +29,7 @@ public class ConnectionCallback implements EntryAddedListener<String, JcAppDescr
 
     @Override
     public void entryRemoved(EntryEvent<String, JcAppDescriptor> event) {
-        JcFactory.getManager().onMemberLeave(event.getValue());
+        JcFactory.getManager().onMemberLeave(event.getOldValue());
         LOG.log(Level.INFO, "ConnectionCallback entryRemoved() {0}", event.getKey());
     }
 

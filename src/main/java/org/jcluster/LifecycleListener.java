@@ -5,6 +5,7 @@
 package org.jcluster;
 
 import java.util.concurrent.Future;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -19,13 +20,14 @@ public class LifecycleListener implements ServletContextListener {
     private static final Logger LOG = Logger.getLogger(LifecycleListener.class.getName());
     private Future<?> submit;
 
-
     @Override
     public void contextInitialized(ServletContextEvent contextEvent) {
+        int port = 4566;
+        String ser = "SLV01234";
 
-        JcFactory.initManager("lws", "192.168.100.18", 4567);
-        JcFactory.getManager().addFilter("loggerSerial", "SLV012345");
-        LOG.info("LifecycleListener: contextInitialized()");
+        JcFactory.initManager("lws", "192.168.100.18", port);
+        JcFactory.getManager().addFilter("loggerSerial", ser);
+        LOG.log(Level.INFO, "LifecycleListener: contextInitialized() PORT: {0} SER: {1}", new Object[]{port, ser});
     }
 
     @Override
