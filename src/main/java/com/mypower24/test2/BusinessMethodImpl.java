@@ -9,13 +9,13 @@ import javax.enterprise.context.RequestScoped;
 import javax.enterprise.context.SessionScoped;
 import javax.enterprise.inject.Default;
 import org.jcluster.IBusinessMethod;
+import org.jcluster.annotation.JcRemote;
 
 /**
  *
  * @author henry
  */
-@RequestScoped
-@Default
+@Stateless
 public class BusinessMethodImpl implements IBusinessMethod{
 
     @Override
