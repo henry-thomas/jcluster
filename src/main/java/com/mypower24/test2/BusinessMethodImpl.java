@@ -4,12 +4,9 @@
  */
 package com.mypower24.test2;
 
+import java.util.logging.Logger;
 import javax.ejb.Stateless;
-import javax.enterprise.context.RequestScoped;
-import javax.enterprise.context.SessionScoped;
-import javax.enterprise.inject.Default;
 import org.jcluster.IBusinessMethod;
-import org.jcluster.annotation.JcRemote;
 
 /**
  *
@@ -18,6 +15,8 @@ import org.jcluster.annotation.JcRemote;
 @Stateless
 public class BusinessMethodImpl implements IBusinessMethod{
 
+    private static final Logger LOG = Logger.getLogger(BusinessMethodImpl.class.getName());
+
     @Override
     public String getJndiName() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
@@ -25,6 +24,7 @@ public class BusinessMethodImpl implements IBusinessMethod{
 
     @Override
     public String execBusinessMethod(Object message, String serialNumber) {
+        LOG.info("Business Method Called");
         return "Hello";
     }
     

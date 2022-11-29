@@ -33,7 +33,7 @@ public class JcAppCluster {
     public Object send(JcProxyMethod proxyMethod, Object[] args, String sendInstanceId) {
         JcMessage msg = new JcMessage(proxyMethod.getMethodName(), proxyMethod.getClassName(), args);
 //        return null;
-        return instanceMap.get(sendInstanceId).send(msg);
+        return instanceMap.get(sendInstanceId).send(msg).getData();
     }
 
     public boolean removeConnection(JcAppDescriptor instance) {

@@ -130,11 +130,12 @@ public class JcInstanceConnection implements Runnable {
                 if (readObject instanceof JcMessage) {
 
                     JcMessage response = (JcMessage) readObject;
-//                            JcMsgResponse response = new JcMsgResponse(request.getRequestId(), readObject);
+//                            JcMsgResponse respMsg = new JcMsgResponse(request.getRequestId(), readObject);
                     JcMessage request = reqRespMap.remove(response.getRequestId());
+//                    JcMessage request = reqRespMap.remove(response.getRequestId());
                     if (request != null) {
                         synchronized (request) {
-//                            request.setResponse(response);
+                            request.setResponse(response.getResponse());
                             request.notifyAll();
                         }
                     }
