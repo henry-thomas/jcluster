@@ -32,7 +32,6 @@ public class LifecycleListener implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent contextEvent) {
-
         JcFactory.getManager().destroy();
         LOG.info("LifecycleListener: contextDestroyed()");
     }

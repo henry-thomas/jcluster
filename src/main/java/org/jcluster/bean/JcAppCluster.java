@@ -5,14 +5,11 @@
 package org.jcluster.bean;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import org.jcluster.messages.JcMessage;
 import org.jcluster.proxy.JcProxyMethod;
-import org.jcluster.sockets.Client.JcInstanceConnection;
+import org.jcluster.sockets.JcClientConnection;
 
 /**
  *
@@ -23,7 +20,7 @@ public class JcAppCluster {
     private static final Logger LOG = Logger.getLogger(JcAppCluster.class.getName());
 
     private final String jcAppName;
-    private final Map<String, JcInstanceConnection> instanceMap = new HashMap<>(); //connections for this app
+    private final Map<String, JcClientConnection> instanceMap = new HashMap<>(); //connections for this app
 //    private final Map<Integer, JcMessage> jcMsgMap = new ConcurrentHashMap<>();
 
     public JcAppCluster(String jcAppName) {
@@ -38,12 +35,12 @@ public class JcAppCluster {
 
     public boolean removeConnection(JcAppDescriptor instance) {
 
-        JcInstanceConnection instanceConnection = instanceMap.get(instance.getInstanceId());
+        JcClientConnection instanceConnection = instanceMap.get(instance.getInstanceId());
         if (instanceConnection != null) {
             instanceConnection.destroy();
         }
 
-        JcInstanceConnection remove = instanceMap.remove(instance.getInstanceId());
+        JcClientConnection remove = instanceMap.remove(instance.getInstanceId());
         if (remove == null) {
             return false;
         }
@@ -53,9 +50,9 @@ public class JcAppCluster {
 
     public boolean broadcast(JcProxyMethod proxyMethod, Object[] args) {
         //if broadcast to 0 instances, fail. Otherwise return true
-        for (Map.Entry<String, JcInstanceConnection> entry : instanceMap.entrySet()) {
+        for (Map.Entry<String, JcClientConnection> entry : instanceMap.entrySet()) {
             String id = entry.getKey();
-            JcInstanceConnection instance = entry.getValue();
+            JcClientConnection instance = entry.getValue();
 
             JcMessage msg = new JcMessage(proxyMethod.getMethodName(), proxyMethod.getClassName(), args);
 //            instance.send(msg);
@@ -63,7 +60,7 @@ public class JcAppCluster {
         return true;
     }
 
-    public void addConnection(JcInstanceConnection conn) {
+    public void addConnection(JcClientConnection conn) {
         instanceMap.put(conn.getDesc().getInstanceId(), conn);
     }
 
@@ -71,14 +68,14 @@ public class JcAppCluster {
         return jcAppName;
     }
 
-    public Map<String, JcInstanceConnection> getInstanceMap() {
+    public Map<String, JcClientConnection> getInstanceMap() {
         return instanceMap;
     }
 
     public void destroy() {
-        for (Map.Entry<String, JcInstanceConnection> entry : instanceMap.entrySet()) {
+        for (Map.Entry<String, JcClientConnection> entry : instanceMap.entrySet()) {
             String key = entry.getKey();
-            JcInstanceConnection conn = entry.getValue();
+            JcClientConnection conn = entry.getValue();
             conn.destroy();
         }
     }

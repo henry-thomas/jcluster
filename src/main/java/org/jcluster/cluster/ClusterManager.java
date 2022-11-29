@@ -14,13 +14,16 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PreDestroy;
+import javax.enterprise.concurrent.ManagedExecutorService;
+import javax.naming.NamingException;
+import org.jcluster.ServiceLookup;
 import org.jcluster.bean.JcAppCluster;
 import org.jcluster.bean.JcAppDescriptor;
-import org.jcluster.bean.JcAppInstance;
+import org.jcluster.bean.JcAppInstanceData;
 import org.jcluster.cluster.hzUtils.HzController;
 import org.jcluster.proxy.JcProxyMethod;
-import org.jcluster.sockets.Client.JcInstanceConnection;
-import org.jcluster.sockets.Server.JcServer;
+import org.jcluster.sockets.JcClientConnection;
+import org.jcluster.sockets.JcServerEndpoint;
 
 /**
  *
@@ -44,12 +47,19 @@ public final class ClusterManager {
     private boolean configDone = false;
     private final ExecutorService exec;
     private String bindAddress;
-    private JcServer server;
+    private JcServerEndpoint server;
+    private ManagedExecutorService executorService = null;
 
     private ClusterManager() {
         exec = Executors.newFixedThreadPool(5);
         HzController hzController = HzController.getInstance();
         appMap = hzController.getMap();
+        try {
+            executorService = (ManagedExecutorService) ServiceLookup.getService("concurrent/__defaultManagedExecutorService");
+            LOG.info("executorService found");
+        } catch (NamingException ex) {
+            Logger.getLogger(ClusterManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     protected static ClusterManager getInstance() {
@@ -91,7 +101,7 @@ public final class ClusterManager {
             }
             LOG.info("JCLUSTER -- Startup...");
             bindAddress = "tcp://" + thisDescriptor.getIpAddress() + ":" + thisDescriptor.getIpPort();
-            server = new JcServer();
+            server = new JcServerEndpoint();
             Thread t = new Thread(server);
             t.start();
             appMap.put(thisDescriptor.getInstanceId(), thisDescriptor);
@@ -99,20 +109,6 @@ public final class ClusterManager {
 //            exec.submit(jcServer);
             running = true;
         }
-    }
-
-    private void initMainThread() {
-        Thread.currentThread().setName("JCLUSTER--ClusterManager-MainThread");
-
-        //add this instance to the shared map
-        LOG.info("JCLUSTER -- Running...");
-//        while (running && !Thread.currentThread().isInterrupted()) {
-//            try {
-//                Thread.sleep(100);
-//            } catch (InterruptedException ex) {
-//                Logger.getLogger(ClusterManager.class.getName()).log(Level.SEVERE, null, ex);
-//            }
-//        }
     }
 
     public void onNewMemberJoin(JcAppDescriptor i) {
@@ -130,28 +126,24 @@ public final class ClusterManager {
                 clusterMap.put(desc.getAppName(), cluster);
             }
 
-            if (cluster.getInstanceMap().containsKey(id) ||
-                    Objects.equals(desc.getInstanceId(), thisDescriptor.getInstanceId()) ||
-                    Objects.equals(desc.getIpAddress() + desc.getIpPort(),
+            if (cluster.getInstanceMap().containsKey(id)
+                    || Objects.equals(desc.getInstanceId(), thisDescriptor.getInstanceId())
+                    || Objects.equals(desc.getIpAddress() + desc.getIpPort(),
                             thisDescriptor.getIpAddress() + thisDescriptor.getIpPort())) {
                 continue;
             }
 
             LOG.log(Level.INFO, "Connecting to someone at: {0}", addr);
 
-//            JcAppInstance jcClient = new JcAppInstance(desc);
-            JcInstanceConnection jcInstanceConnection = new JcInstanceConnection(desc);
-            JcAppInstance.getInstance().addConnection(jcInstanceConnection);
-            cluster.addConnection(jcInstanceConnection);
-//
-            JcInstanceConnection putIfAbsent = cluster.getInstanceMap().putIfAbsent(id, jcInstanceConnection);
-//            if (putIfAbsent == null) {
-            //Automatically connecting to the instance
-            Thread t = new Thread(jcInstanceConnection);
+            //Creating an outbound connection as soon as a new member joins.
+            //Outbound connections behave diffently when receiving messages
+            JcClientConnection jcClientConnection = new JcClientConnection(desc);
+            Thread t = new Thread(jcClientConnection);
             t.start();
-//            }
 
-//            LOG.info(jcClient.printDescription());
+            JcAppInstanceData.getInstance().addOutboundConnection(jcClientConnection);
+            cluster.addConnection(jcClientConnection);
+            JcClientConnection putIfAbsent = cluster.getInstanceMap().putIfAbsent(id, jcClientConnection);
         }
 
     }
@@ -208,10 +200,10 @@ public final class ClusterManager {
     }
 
     private Map<String, JcAppDescriptor> getIdDescMap(JcAppCluster cluster) {
-        Map<String, JcInstanceConnection> instanceMap = cluster.getInstanceMap();
+        Map<String, JcClientConnection> instanceMap = cluster.getInstanceMap();
         Map<String, JcAppDescriptor> idDescMap = new HashMap<>();
 
-        for (Map.Entry<String, JcInstanceConnection> entry : instanceMap.entrySet()) {
+        for (Map.Entry<String, JcClientConnection> entry : instanceMap.entrySet()) {
             String instanceId = entry.getKey();
 
             JcAppDescriptor desc = appMap.get(instanceId);
@@ -266,6 +258,11 @@ public final class ClusterManager {
         appMap.remove(thisDescriptor.getInstanceId());
         server.destroy();
         running = false;
+        HzController.getInstance().destroy();
+    }
+
+    public ManagedExecutorService getExecutorService() {
+        return executorService;
     }
 
 }

@@ -24,18 +24,18 @@ public class ConnectionCallback implements EntryAddedListener<String, JcAppDescr
     @Override
     public void entryAdded(EntryEvent<String, JcAppDescriptor> event) {
         JcFactory.getManager().onNewMemberJoin(event.getValue());
-        LOG.log(Level.INFO, "ConnectionCallback entryAdded() {0}", event.getKey());
+//        LOG.log(Level.INFO, "ConnectionCallback entryAdded() {0}", event.getKey());
     }
 
     @Override
     public void entryRemoved(EntryEvent<String, JcAppDescriptor> event) {
         JcFactory.getManager().onMemberLeave(event.getOldValue());
-        LOG.log(Level.INFO, "ConnectionCallback entryRemoved() {0}", event.getKey());
+//        LOG.log(Level.INFO, "ConnectionCallback entryRemoved() {0}", event.getKey());
     }
 
     @Override
     public void entryUpdated(EntryEvent<String, JcAppDescriptor> event) {
-        LOG.log(Level.INFO, "ConnectionCallback entryUpdated() {0}", event.getKey());
+//        LOG.log(Level.INFO, "ConnectionCallback entryUpdated() {0}", event.getKey());
     }
 
 }

@@ -4,6 +4,7 @@
  */
 package com.mypower24.test2;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.Stateless;
 import org.jcluster.IBusinessMethod;
@@ -13,7 +14,7 @@ import org.jcluster.IBusinessMethod;
  * @author henry
  */
 @Stateless
-public class BusinessMethodImpl implements IBusinessMethod{
+public class BusinessMethodImpl implements IBusinessMethod {
 
     private static final Logger LOG = Logger.getLogger(BusinessMethodImpl.class.getName());
 
@@ -27,5 +28,5 @@ public class BusinessMethodImpl implements IBusinessMethod{
         LOG.info("Business Method Called");
         return "Hello";
     }
-    
+
 }

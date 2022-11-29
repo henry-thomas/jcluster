@@ -25,6 +25,7 @@ public class JcBootstrap implements Extension {
     public void afterBeanDiscovery(@Observes AfterBeanDiscovery event, BeanManager manager) {
         LOG.info("JcBootstrap afterBeanDiscovery()");
         ClassLoader classLoader = IBusinessMethod.class.getClassLoader();
+ 
         Object newProxyInstance = Proxy.newProxyInstance(classLoader, new Class[]{IBusinessMethod.class}, new JcRemoteExecutionHandler());
         event.addBean().types(IBusinessMethod.class).createWith(e -> newProxyInstance);
 

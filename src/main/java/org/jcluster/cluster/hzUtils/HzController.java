@@ -35,16 +35,16 @@ public class HzController {
         setDiscoveryConfig();
 
         hz = Hazelcast.newHazelcastInstance(hzConfig);
-        
+
         map = hz.getMap("jc-app-map");
-        
+
         map.addEntryListener(new ConnectionCallback(), true);
         LifecycleService lifeCycle = hz.getLifecycleService();
 //        lifeCycle.addLifecycleListener(new HzLifeCycleListener());
         hz.addDistributedObjectListener(new HzDistrObjectListener());
     }
-    
-    private void setDiscoveryConfig(){
+
+    private void setDiscoveryConfig() {
         JoinConfig join = new JoinConfig();
         DiscoveryConfig discoveryConfig = join.getDiscoveryConfig();
         hzConfig.getNetworkConfig().setJoin(join);
@@ -61,6 +61,10 @@ public class HzController {
 
     public IMap<String, JcAppDescriptor> getMap() {
         return map;
+    }
+
+    public void destroy() {
+        hz.shutdown();
     }
 
     public void showConnected() {
