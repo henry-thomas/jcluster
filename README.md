@@ -12,11 +12,11 @@ In META-INF folder, add a file called "javax.enterprise.inject.spi.Extension" wi
 Create your remote interfaces if you haven't done so already, and annotate them using the provided annotations:
 ```
 @Remote
+@JcRemote(appName = "lws")
 public interface IBusinessMethod extends Serializable {
 
     public String getJndiName();
 
-    @JcRemote(appName = "lws")
     public String execBusinessMethod(Object message, @JcInstanceFilter(filterName = "loggerSerial") String serialNumber);
 }
 ```
