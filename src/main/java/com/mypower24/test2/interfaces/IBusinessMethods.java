@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Interface.java to edit this template
  */
-package org.jcluster;
+package com.mypower24.test2.interfaces;
 
 import java.io.Serializable;
 import javax.ejb.Remote;
@@ -15,7 +15,7 @@ import org.jcluster.annotation.JcRemote;
  */
 @Remote
 @JcRemote(appName = "lws")
-public interface IBusinessMethod extends Serializable {
+public interface IBusinessMethods extends Serializable {
 
     public String getJndiName();
 

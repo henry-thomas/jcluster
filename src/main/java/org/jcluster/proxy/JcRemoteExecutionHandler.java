@@ -14,6 +14,7 @@ import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 import org.jcluster.cluster.JcFactory;
 
 /**
@@ -21,6 +22,8 @@ import org.jcluster.cluster.JcFactory;
  * @author henry
  */
 public class JcRemoteExecutionHandler implements InvocationHandler, Serializable {
+
+    private static final Logger LOG = Logger.getLogger(JcRemoteExecutionHandler.class.getName());
 
     private final Map<String, JcProxyMethod> methodCache = new HashMap<>();
 
@@ -38,9 +41,12 @@ public class JcRemoteExecutionHandler implements InvocationHandler, Serializable
             methodCache.put(method.getName(), proxyMethod);
         }
 
-        
-
         Object send = JcFactory.getManager().send(proxyMethod, args);
+
+        if (send instanceof Exception) {
+            LOG.severe(((Exception) send).getMessage());
+            return null;
+        }
 
         return proxyMethod.getReturnType().cast(send);
 

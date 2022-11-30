@@ -4,17 +4,26 @@
  */
 package org.jcluster.sockets.exception;
 
+import org.jcluster.messages.JcMessage;
+
 /**
  *
  * @author henry
  */
-public class JcResponseTimeoutException extends Exception{
+public class JcResponseTimeoutException extends Exception {
+
+    private JcMessage jcMessage;
 
     /**
      * Creates a new instance of <code>JcResponseTimeoutException</code> without
      * detail message.
+     *
+     * @param msg
+     * @param jcMsg
      */
-    public JcResponseTimeoutException() {
+    public JcResponseTimeoutException(String msg, JcMessage jcMsg) {
+        super(msg);
+        this.jcMessage = jcMsg;
     }
 
     /**
@@ -26,4 +35,9 @@ public class JcResponseTimeoutException extends Exception{
     public JcResponseTimeoutException(String msg) {
         super(msg);
     }
+
+    public JcMessage getJcMessage() {
+        return jcMessage;
+    }
+
 }

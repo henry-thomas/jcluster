@@ -4,7 +4,6 @@
  */
 package com.mypower24.test2;
 
-import org.jcluster.IBusinessMethod;
 import java.io.Serializable;
 import java.util.logging.Logger;
 import javax.enterprise.context.RequestScoped;
@@ -12,6 +11,8 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.jcluster.messages.JcMessage;
+import com.mypower24.test2.interfaces.IBusinessMethods;
+import com.mypower24.test2.interfaces.IMoreBusinessMethods;
 
 /**
  *
@@ -24,8 +25,10 @@ public class CoolView implements Serializable {
     private static final Logger LOG = Logger.getLogger(CoolView.class.getName());
 
     @Inject
-    Instance<IBusinessMethod> iFace;
+    Instance<IBusinessMethods> iFace;
 
+    @Inject
+    IMoreBusinessMethods anotherIFace;
 
     private long timeTaken = 0l;
     private String result;
@@ -40,6 +43,7 @@ public class CoolView implements Serializable {
     }
 
     public void test() {
+//        result = iFace.execBusinessMethod("sad", "SLV01234");
         result = iFace.get().execBusinessMethod("asd", "SLV01234");
     }
 

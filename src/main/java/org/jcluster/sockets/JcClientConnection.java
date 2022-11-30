@@ -29,6 +29,7 @@ import org.jcluster.messages.ConnectionParam;
 import org.jcluster.messages.JcMessage;
 import org.jcluster.messages.JcMsgResponse;
 import org.jcluster.sockets.exception.JcResponseTimeoutException;
+import org.jcluster.sockets.exception.JcSocketConnectException;
 
 /**
  *
@@ -85,18 +86,29 @@ public class JcClientConnection implements Runnable {
         }
     }
 
-    private boolean connect() throws IOException {
+    private boolean connect() throws JcSocketConnectException {
         if (!socket.isConnected() || socket.isClosed()) {
             try {
+                //            try {
                 SocketAddress socketAddress = new InetSocketAddress(this.hostName, this.port);
                 //try connect with timeout of 2000ms
                 socket.connect(socketAddress, 2000);
 
                 LOG.log(Level.INFO, "Connected to: {0}:{1}", new Object[]{this.hostName, this.port});
+
+//            } catch (IOException ex) {
+//                LOG.log(Level.SEVERE, "Could not connect to: {0}:{1} Exception: {2}", new Object[]{desc.getIpAddress(), desc.getIpPort(), ex.getMessage()});
+//                running = false;
+//                return false;
+//            }
             } catch (IOException ex) {
-                LOG.log(Level.SEVERE, "Could not connect to: {0}:{1} Exception: {2}", new Object[]{desc.getIpAddress(), desc.getIpPort(), ex.getMessage()});
-                running = false;
-                return false;
+                Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
+                throw new JcSocketConnectException("Could not connect to: "
+                        + desc.getAppName()
+                        + " at " + desc.getIpAddress()
+                        + ": " + desc.getIpPort()
+                        + " Exception: "
+                        + ex.getMessage());
             }
         }
 
@@ -145,17 +157,23 @@ public class JcClientConnection implements Runnable {
 
             if (msg.getResponse() == null) {
                 timeoutCount++;
-                throw new JcResponseTimeoutException("No response received, timeout");
+                throw new JcResponseTimeoutException("No response received, timeout. APP_NAME: ["
+                        + desc.getAppName() + "] ADDRESS: ["
+                        + desc.getIpAddress() + ":" + String.valueOf(desc.getIpPort())
+                        + "] METHOD: [" + msg.getMethodName()
+                        + "] INSTANCE_ID: [" + desc.getInstanceId() + "]", msg);
             }
 
             return msg.getResponse();
         } catch (IOException | InterruptedException ex) {
             Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
         } catch (JcResponseTimeoutException ex) {
-            JcMsgResponse resp = new JcMsgResponse(msg.getRequestId(), ex.getMessage());
+            //Forwarding the exception to whoever was calling this method.
+            JcMsgResponse resp = new JcMsgResponse(msg.getRequestId(), ex);
             msg.setResponse(resp);
+            Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex.getMessage());
             return resp;
-//            Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
+
         }
         return null;
     }
@@ -167,6 +185,7 @@ public class JcClientConnection implements Runnable {
             oos.writeObject(msg);
 
         } catch (IOException ex) {
+            errCount++;
             Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -174,10 +193,16 @@ public class JcClientConnection implements Runnable {
     @Override
     public void run() {
 
-        Thread.currentThread().setName(desc.getAppName() + "-" + hostName + ":" + port);
+        if (connType == ConnectionType.OUTBOUND) {
+            Thread.currentThread().setName(desc.getAppName() + "-" + hostName + ":" + port + "-OUTBOUND");
+        } else {
+            Thread.currentThread().setName(desc.getAppName() + "-" + hostName + ":" + port + "-INBOUND");
+        }
+        
         try {
             connect();
-        } catch (IOException ex) {
+        } catch (JcSocketConnectException ex) {
+            errCount++;
             Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
 
@@ -201,10 +226,10 @@ public class JcClientConnection implements Runnable {
                 try {
                     JcMessage request = (JcMessage) ois.readObject();
                     manager.getExecutorService().submit(new ExecuteMethod(oos, request));
-//                    execMethod(request);
                     rxCount++;
                 } catch (ClassNotFoundException | IOException ex) {
                     running = false;
+                    errCount++;
                     Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
@@ -242,11 +267,14 @@ public class JcClientConnection implements Runnable {
             try {
                 Thread.sleep(5000);
                 connect();
+                errCount++;
                 Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
 
             } catch (InterruptedException ex1) {
+                errCount++;
                 Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex1) {
+            } catch (JcSocketConnectException ex1) {
+                errCount++;
                 Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex1);
             }
         } catch (ClassNotFoundException ex) {
@@ -254,48 +282,6 @@ public class JcClientConnection implements Runnable {
                     .getName()).log(Level.SEVERE, null, ex);
         }
 
-    }
-
-    private void execMethod(JcMessage request) throws ClassNotFoundException {
-        JcMsgResponse response;
-        String jndiName;
-        try {
-            jndiName = request.getClassName() + "#" + request.getClassName();
-            Object service;
-
-            try {
-                service = ServiceLookup.getService(jndiName);
-            } catch (NamingException ex) {
-                response = new JcMsgResponse(request.getRequestId(), "Could not find service: " + jndiName);
-                request.setResponse(response);
-                sendNoResponse(request);
-                Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
-                return;
-            }
-
-            //TODO To be cached later
-            Map<String, Method> commands = new HashMap<>();
-
-            for (Method method : service.getClass().getMethods()) {
-                if (method.isAnnotationPresent(JcCommand.class)) {
-                    JcCommand tCommand = method.getAnnotation(JcCommand.class);
-                }
-                commands.put(method.getName(), method);
-            }
-
-            Method method = commands.get(request.getMethodName());
-            Object result = method.invoke(service, request.getArgs());
-
-            //Do work, then assign response here
-            response = new JcMsgResponse(request.getRequestId(), result);
-            request.setResponse(response);
-            LOG.info("Sending response...");
-            sendNoResponse(request);
-
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            running = false;
-            Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 
     public void destroy() {

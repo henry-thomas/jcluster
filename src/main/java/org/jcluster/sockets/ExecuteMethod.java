@@ -54,7 +54,7 @@ public class ExecuteMethod implements Runnable {
             try {
                 service = ServiceLookup.getService(jndiName);
             } catch (NamingException ex) {
-                response = new JcMsgResponse(request.getRequestId(), "Could not find service: " + jndiName);
+                response = new JcMsgResponse(request.getRequestId(), "Could not find service: " + jndiName + " Exception: " + ex.getMessage());
                 request.setResponse(response);
                 sendNoResponse(request);
                 Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);

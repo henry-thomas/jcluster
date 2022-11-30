@@ -22,12 +22,12 @@ public class LifecycleListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent contextEvent) {
-        int port = 4566;
-        String ser = "SLV01234";
-
-        JcFactory.initManager("lws", "192.168.100.18", port);
-        JcFactory.getManager().addFilter("loggerSerial", ser);
-        LOG.log(Level.INFO, "LifecycleListener: contextInitialized() PORT: {0} SER: {1}", new Object[]{port, ser});
+//        int port = 4567;
+//        String ser = "SLV012345";
+//
+//        JcFactory.initManager("lws", "192.168.100.18", port);
+//        JcFactory.getManager().addFilter("loggerSerial", ser);
+//        LOG.log(Level.INFO, "LifecycleListener: contextInitialized() PORT: {0} SER: {1}", new Object[]{port, ser});
     }
 
     @Override
