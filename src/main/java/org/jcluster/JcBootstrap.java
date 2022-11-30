@@ -4,22 +4,23 @@
  */
 package org.jcluster;
 
+import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.ClassPath.ClassInfo;
+import com.mypower24.test2.interfaces.IBusinessMethods;
+import java.io.IOException;
 import java.lang.reflect.Proxy;
-import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.LocalBean;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.Extension;
-import javax.enterprise.inject.spi.configurator.BeanConfigurator;
+import org.jcluster.annotation.JcRemote;
 import org.jcluster.proxy.JcRemoteExecutionHandler;
-import com.mypower24.test2.interfaces.IBusinessMethods;
-import com.mypower24.test2.interfaces.IMoreBusinessMethods;
 
 /**
  *
@@ -30,19 +31,47 @@ public class JcBootstrap implements Extension {
 
     private static final Logger LOG = Logger.getLogger(JcBootstrap.class.getName());
 
+    private List<Class> getAllJcRemoteClasses(String pkg) {
+        List<Class> classList = new ArrayList<>();
+        try {
+            ClassPath classPath = ClassPath.from(IBusinessMethods.class.getClassLoader());
+            Set<ClassInfo> classes = classPath.getAllClasses();
+            for (ClassInfo c : classes) {
+                if (c.getName().startsWith(pkg)) {
+                    try {
+                        Class<?> forName = Class.forName(c.getName());
+                        if (forName.isInterface() && forName.getAnnotation(JcRemote.class) != null) {
+//                        System.out.println("JcRemote Class: " + forName.getName() + " implementation loaded");
+                            classList.add(forName);
+                        }
+
+                    } catch (Throwable ex) {
+//                    LOG.severe(ex.getMessage());
+                    }
+                }
+            }
+
+        } catch (IOException ex) {
+        }
+        return classList;
+    }
+
     public void afterBeanDiscovery(@Observes AfterBeanDiscovery event, BeanManager manager) {
         LOG.info("JcBootstrap afterBeanDiscovery()");
-        ClassLoader classLoader = IBusinessMethods.class.getClassLoader();
 
-        Class[] typeArr = {IBusinessMethods.class, IMoreBusinessMethods.class};
-//        Set<Class> types = Set.of(typeArr);
-        List<Class> asList = Arrays.asList(typeArr);
-        Class[] toArray = asList.toArray(new Class[0]);
-//        Class[] toArray = (Class[]) types.toArray();
+        long scanStart = System.currentTimeMillis();
+        List<Class> jcRemoteInterfaceList = getAllJcRemoteClasses("com.mypower24.test2.interfaces");
 
-        Object newProxyInstance = Proxy.newProxyInstance(classLoader, toArray, new JcRemoteExecutionHandler());
-//        Object newProxyInstance = Proxy.newProxyInstance(classLoader, new Class[]{IBusinessMethods.class, IMoreBusinessMethods.class}, new JcRemoteExecutionHandler());
-        BeanConfigurator<Object> createWith = event.addBean().types(toArray).createWith(e -> newProxyInstance);
+        long scanEnd = System.currentTimeMillis();
+        LOG.log(Level.INFO, "JcBootstrap Scan for JcRemote annotation in {0}ms, found: {1}", new Object[]{scanEnd - scanStart, jcRemoteInterfaceList.size()});
+//            Object newProxyInstance = Proxy.newProxyInstance(classLoader, new Class[]{IBusinessMethod.class}, new JcRemoteExecutionHandler());
+//            event.addBean().types(IBusinessMethod.class).createWith(e -> newProxyInstance);
+
+        for (Class jcRClass : jcRemoteInterfaceList) {
+            Object newProxyInstance = Proxy.newProxyInstance(JcRemote.class.getClassLoader(), new Class[]{jcRClass}, new JcRemoteExecutionHandler());
+            event.addBean().types(jcRClass).createWith(e -> newProxyInstance);
+            LOG.log(Level.INFO, "JcBootstrap add Remote interface implementation for: [{0}]", new Object[]{jcRClass.getName()});
+        }
 
     }
 

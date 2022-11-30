@@ -27,8 +27,8 @@ public class CoolView implements Serializable {
     @Inject
     Instance<IBusinessMethods> iFace;
 
-    @Inject
-    IMoreBusinessMethods anotherIFace;
+//    @Inject
+//    IMoreBusinessMethods anotherIFace;
 
     private long timeTaken = 0l;
     private String result;
