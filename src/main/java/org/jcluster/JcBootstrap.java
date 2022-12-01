@@ -64,8 +64,6 @@ public class JcBootstrap implements Extension {
 
         long scanEnd = System.currentTimeMillis();
         LOG.log(Level.INFO, "JcBootstrap Scan for JcRemote annotation in {0}ms, found: {1}", new Object[]{scanEnd - scanStart, jcRemoteInterfaceList.size()});
-//            Object newProxyInstance = Proxy.newProxyInstance(classLoader, new Class[]{IBusinessMethod.class}, new JcRemoteExecutionHandler());
-//            event.addBean().types(IBusinessMethod.class).createWith(e -> newProxyInstance);
 
         for (Class jcRClass : jcRemoteInterfaceList) {
             Object newProxyInstance = Proxy.newProxyInstance(JcRemote.class.getClassLoader(), new Class[]{jcRClass}, new JcRemoteExecutionHandler());
