@@ -33,7 +33,7 @@ public class ExecuteMethod implements Runnable {
         this.request = msg;
     }
 
-    public void sendNoResponse(JcMessage msg) {
+    public void sendAck(JcMessage msg) {
         try {
 
             oos.writeObject(msg);
@@ -54,9 +54,9 @@ public class ExecuteMethod implements Runnable {
             try {
                 service = ServiceLookup.getService(jndiName);
             } catch (NamingException ex) {
-                response = new JcMsgResponse(request.getRequestId(), "Could not find service: " + jndiName + " Exception: " + ex.getMessage());
+                response = new JcMsgResponse(request.getRequestId(), ex);
                 request.setResponse(response);
-                sendNoResponse(request);
+                sendAck(request);
                 Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
                 return;
             }
@@ -77,8 +77,8 @@ public class ExecuteMethod implements Runnable {
             //Do work, then assign response here
             response = new JcMsgResponse(request.getRequestId(), result);
             request.setResponse(response);
-            LOG.info("Sending response...");
-            sendNoResponse(request);
+//            LOG.info("Sending response...");
+            sendAck(request);
 
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);

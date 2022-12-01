@@ -55,7 +55,7 @@ public class JcAppCluster {
             JcClientConnection instance = entry.getValue();
 
             JcMessage msg = new JcMessage(proxyMethod.getMethodName(), proxyMethod.getClassName(), args);
-//            instance.send(msg);
+            instance.send(msg);
         }
         return true;
     }

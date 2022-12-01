@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -20,6 +21,9 @@ import org.jcluster.ServiceLookup;
 import org.jcluster.bean.JcAppCluster;
 import org.jcluster.bean.JcAppDescriptor;
 import org.jcluster.bean.JcAppInstanceData;
+import org.jcluster.cluster.exception.JcClusterNotFoundException;
+import org.jcluster.cluster.exception.JcFilterNotFoundException;
+import org.jcluster.cluster.exception.JcInstanceNotFoundException;
 import org.jcluster.cluster.hzUtils.HzController;
 import org.jcluster.proxy.JcProxyMethod;
 import org.jcluster.sockets.JcClientConnection;
@@ -45,13 +49,11 @@ public final class ClusterManager {
     private static final ClusterManager INSTANCE = new ClusterManager();
     private boolean running = false;
     private boolean configDone = false;
-    private final ExecutorService exec;
     private String bindAddress;
     private JcServerEndpoint server;
     private ManagedExecutorService executorService = null;
 
     private ClusterManager() {
-        exec = Executors.newFixedThreadPool(5);
         HzController hzController = HzController.getInstance();
         appMap = hzController.getMap();
         try {
@@ -79,6 +81,7 @@ public final class ClusterManager {
         filterSet.add(value);
         //update distributed map
         appMap.put(thisDescriptor.getInstanceId(), thisDescriptor);
+        LOG.log(Level.INFO, "Added filter: [{0}] with value: [{1}]", new Object[]{filterName, String.valueOf(value)});
     }
 
     protected ClusterManager initConfig(String appName, String ipAddress, Integer port) {
@@ -102,8 +105,9 @@ public final class ClusterManager {
             LOG.info("JCLUSTER -- Startup...");
             bindAddress = "tcp://" + thisDescriptor.getIpAddress() + ":" + thisDescriptor.getIpPort();
             server = new JcServerEndpoint();
-            Thread t = new Thread(server);
-            t.start();
+            executorService.submit(server);
+//            Thread t = new Thread(server);
+//            t.start();
             appMap.put(thisDescriptor.getInstanceId(), thisDescriptor);
 //            exec.submit(this::initMainThread);
 //            exec.submit(jcServer);
@@ -133,13 +137,14 @@ public final class ClusterManager {
                 continue;
             }
 
-            LOG.log(Level.INFO, "Connecting to someone at: {0}", addr);
+            LOG.log(Level.INFO, "Connecting to app{0} at: {1}", new Object[]{desc.getAppName(), addr});
 
             //Creating an outbound connection as soon as a new member joins.
             //Outbound connections behave diffently when receiving messages
             JcClientConnection jcClientConnection = new JcClientConnection(desc);
-            Thread t = new Thread(jcClientConnection);
-            t.start();
+            executorService.submit(jcClientConnection);
+//            Thread t = new Thread(jcClientConnection);
+//            t.start();
 
             JcAppInstanceData.getInstance().addOutboundConnection(jcClientConnection);
             cluster.addConnection(jcClientConnection);
@@ -169,17 +174,17 @@ public final class ClusterManager {
         }
     }
 
-    public Object send(JcProxyMethod proxyMethod, Object[] args) {
+    public Object send(JcProxyMethod proxyMethod, Object[] args) throws JcFilterNotFoundException, JcInstanceNotFoundException {
         //Logic to send to correct app
 
         JcAppCluster cluster = clusterMap.get(proxyMethod.getAppName());
         if (cluster == null) {
             //ex   
-            return null;
+            return new JcClusterNotFoundException("Cluster not found for " + proxyMethod.getAppName());
         }
 
         if (!proxyMethod.isInstanceFilter()) {
-            cluster.broadcast(proxyMethod, args);
+            return cluster.broadcast(proxyMethod, args);
         } else {
 
             Map<String, JcAppDescriptor> idDescMap = getIdDescMap(cluster);
@@ -190,12 +195,11 @@ public final class ClusterManager {
 
             if (sendInstanceId == null) {
                 //ex
-                return null;
+                throw new JcInstanceNotFoundException("Instance not found for " + proxyMethod.getMethodName());
             }
 
             return cluster.send(proxyMethod, args, sendInstanceId);
         }
-        return null;
 
     }
 
@@ -215,7 +219,7 @@ public final class ClusterManager {
 
     ;
 
-    private String getSendInstance(Map<String, JcAppDescriptor> idDescMap, Map<String, Integer> paramNameIdxMap, Object[] args) {
+    private String getSendInstance(Map<String, JcAppDescriptor> idDescMap, Map<String, Integer> paramNameIdxMap, Object[] args) throws JcFilterNotFoundException {
         for (Map.Entry<String, JcAppDescriptor> entry : idDescMap.entrySet()) {
             String descId = entry.getKey();
             JcAppDescriptor desc = entry.getValue();
@@ -229,12 +233,12 @@ public final class ClusterManager {
                 if (filterSet != null) {
 
                     if (filterSet.contains(args[idx])) {
-                        LOG.log(Level.INFO, "FOUND WHO HAS [{0}] {1}", new Object[]{filterName, args[idx]});
+//                        LOG.log(Level.INFO, "FOUND WHO HAS [{0}] {1}", new Object[]{filterName, args[idx]});
                         return descId;
                     }
 
                 } else {
-                    LOG.warning("Filter does not exist in map");
+                    throw new JcFilterNotFoundException("Filter does not exist in map... filterName: [" + filterName + "] Argument: [" + args[idx] + "]");
                 }
 
             }
@@ -249,7 +253,6 @@ public final class ClusterManager {
     @PreDestroy
     public void destroy() {
         LOG.info("JCLUSTER -- Stopping...");
-        exec.shutdownNow();
         for (Map.Entry<String, JcAppCluster> entry : clusterMap.entrySet()) {
             String key = entry.getKey();
             JcAppCluster cluster = entry.getValue();

@@ -27,8 +27,8 @@ public class CoolView implements Serializable {
     @Inject
     Instance<IBusinessMethods> iFace;
 
-//    @Inject
-//    IMoreBusinessMethods anotherIFace;
+    @Inject
+    Instance<IMoreBusinessMethods> anotherIFace;
 
     private long timeTaken = 0l;
     private String result;
@@ -45,6 +45,10 @@ public class CoolView implements Serializable {
     public void test() {
 //        result = iFace.execBusinessMethod("sad", "SLV01234");
         result = iFace.get().execBusinessMethod("asd", "SLV01234");
+    }
+    public void testAnother() {
+//        result = iFace.execBusinessMethod("sad", "SLV01234");
+        result = anotherIFace.get().execAnotherBusinessMethod("Pieter").getSurname();
     }
 
     public String getResult() {

@@ -56,6 +56,7 @@ public class JcClientConnection implements Runnable {
     private int rxCount = 0;
     private int errCount = 0;
     private int timeoutCount = 0;
+    private final Object writeLock = new Object();
 
     private final Map<Integer, JcMessage> reqRespMap = new HashMap<>();
 
@@ -178,17 +179,7 @@ public class JcClientConnection implements Runnable {
         return null;
     }
 
-    //Called From This Thread or Client Thread
-    public void sendNoResponse(JcMessage msg) {
-        try {
 
-            oos.writeObject(msg);
-
-        } catch (IOException ex) {
-            errCount++;
-            Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
 
     @Override
     public void run() {

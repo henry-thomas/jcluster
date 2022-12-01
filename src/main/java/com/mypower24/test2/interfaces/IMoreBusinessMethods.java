@@ -4,6 +4,7 @@
  */
 package com.mypower24.test2.interfaces;
 
+import com.mypower24.test2.controller.entity.Dummy;
 import javax.ejb.Remote;
 import org.jcluster.annotation.JcInstanceFilter;
 import org.jcluster.annotation.JcRemote;
@@ -16,5 +17,5 @@ import org.jcluster.annotation.JcRemote;
 @JcRemote(appName = "lws")
 public interface IMoreBusinessMethods {
 
-    public Boolean execAnotherBusinessMethod(@JcInstanceFilter(filterName = "name") String name);
+    public Dummy execAnotherBusinessMethod(@JcInstanceFilter(filterName = "name") String name);
 }

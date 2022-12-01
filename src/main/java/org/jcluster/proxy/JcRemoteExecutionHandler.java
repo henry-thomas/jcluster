@@ -41,14 +41,14 @@ public class JcRemoteExecutionHandler implements InvocationHandler, Serializable
             methodCache.put(method.getName(), proxyMethod);
         }
 
-        Object send = JcFactory.getManager().send(proxyMethod, args);
+        Object response = JcFactory.getManager().send(proxyMethod, args);
 
-        if (send instanceof Exception) {
-            LOG.severe(((Exception) send).getMessage());
-            return null;
+        if (response instanceof Exception) {
+            LOG.severe(((Exception) response).getMessage());
+            throw ((Exception) response);
         }
 
-        return proxyMethod.getReturnType().cast(send);
+        return proxyMethod.getReturnType().cast(response);
 
     }
 

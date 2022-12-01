@@ -4,11 +4,13 @@
  */
 package com.mypower24.test2.controller.entity;
 
+import java.io.Serializable;
+
 /**
  *
  * @author henry
  */
-public class Dummy {
+public class Dummy implements Serializable{
 
     private final String name;
     private final String surname;

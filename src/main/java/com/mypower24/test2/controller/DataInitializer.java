@@ -5,17 +5,13 @@
 package com.mypower24.test2.controller;
 
 import com.mypower24.test2.controller.entity.Dummy;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import javax.enterprise.context.ApplicationScoped;
 import org.jcluster.cluster.JcFactory;
 
 /**
@@ -41,13 +37,17 @@ public class DataInitializer {
         String hostName = System.getProperty("JC_HOSTNAME");
         String appName = System.getProperty("JC_APP_NAME");
 
-
         //For Testing, add values to filter here
         String ser;
+        String name;
         if (port == 4566) {
             ser = "SLV012345";
+            dataMap.put("Nathan", new Dummy("Nathan", "Brill"));
+            dataMap.put("Lawrence", new Dummy("Lawrence", "Biffy"));
         } else {
             ser = "SLV01234";
+            dataMap.put("Pieter", new Dummy("Pieter", "Oberholzer"));
+            dataMap.put("Kostadin", new Dummy("Kostadin", "Petkov"));
         }
         //Initialize J-Cluster for this app
         JcFactory.initManager(appName, hostName, port);
@@ -56,16 +56,15 @@ public class DataInitializer {
         JcFactory.getManager().addFilter("loggerSerial", ser);
 
         //Adding some dummy data
-        dataMap.put("1", new Dummy("1", "nobody"));
-        dataMap.put("12", new Dummy("12", "somebody"));
-        dataMap.put("123", new Dummy("1234", "most people"));
-        dataMap.put("1234", new Dummy("1234", "everybody"));
-
         for (Map.Entry<String, Dummy> entry : dataMap.entrySet()) {
             String key = entry.getKey();
 
             JcFactory.getManager().addFilter("name", key);
-            LOG.log(Level.INFO, "DataController init() Added: {0}", key);
         }
     }
+
+    public HashMap<String, Dummy> getDataMap() {
+        return dataMap;
+    }
+
 }

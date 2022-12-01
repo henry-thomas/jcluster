@@ -58,9 +58,7 @@ public class JcServerEndpoint implements Runnable {
             JcAppInstanceData.getInstance().getInboundConnections().clear();
             connMap.clear();
             running = false;
-            if (server != null) {
-                server.close();
-            }
+            server.close();
         } catch (IOException ex) {
             Logger.getLogger(JcServerEndpoint.class.getName()).log(Level.SEVERE, null, ex);
         }

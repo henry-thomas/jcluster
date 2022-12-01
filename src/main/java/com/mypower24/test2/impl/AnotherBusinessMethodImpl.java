@@ -4,9 +4,11 @@
  */
 package com.mypower24.test2.impl;
 
-import java.util.Objects;
+import com.mypower24.test2.controller.DataInitializer;
+import com.mypower24.test2.controller.entity.Dummy;
 import javax.ejb.Stateless;
 import com.mypower24.test2.interfaces.IMoreBusinessMethods;
+import javax.inject.Inject;
 
 /**
  *
@@ -15,13 +17,12 @@ import com.mypower24.test2.interfaces.IMoreBusinessMethods;
 @Stateless
 public class AnotherBusinessMethodImpl implements IMoreBusinessMethods {
 
-    @Override
-    public Boolean execAnotherBusinessMethod(String name) {
-        if (Objects.equals("1234", name)) {
-            return true;
+    @Inject
+    DataInitializer data;
 
-        }
-        return false;
+    @Override
+    public Dummy execAnotherBusinessMethod(String name) {
+        return data.getDataMap().get(name);
     }
 
 }
