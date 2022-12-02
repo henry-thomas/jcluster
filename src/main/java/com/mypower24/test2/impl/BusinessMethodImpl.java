@@ -25,7 +25,7 @@ public class BusinessMethodImpl implements IBusinessMethods {
 
     @Override
     public String execBusinessMethod(Object message, String serialNumber) {
-        LOG.info("Business Method Called");
+        LOG.log(Level.INFO, "Business Method Called from: {0}", Thread.currentThread().getName());
 //            Thread.sleep(2000);
         return "Hello";
     }

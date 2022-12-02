@@ -28,8 +28,8 @@ import org.jcluster.cluster.hzUtils.HzController;
 import org.jcluster.messages.ConnectionParam;
 import org.jcluster.messages.JcMessage;
 import org.jcluster.messages.JcMsgResponse;
-import org.jcluster.sockets.exception.JcResponseTimeoutException;
-import org.jcluster.sockets.exception.JcSocketConnectException;
+import org.jcluster.exception.sockets.JcResponseTimeoutException;
+import org.jcluster.exception.sockets.JcSocketConnectException;
 
 /**
  *
@@ -148,7 +148,11 @@ public class JcClientConnection implements Runnable {
     public JcMsgResponse send(JcMessage msg, int timeoutMs) {
         try {
 
-            oos.writeObject(msg);
+            synchronized (writeLock) {
+                oos.writeObject(msg);
+                oos.flush();
+            }
+
             txCount++;
             reqRespMap.put(msg.getRequestId(), msg);
 
@@ -156,6 +160,7 @@ public class JcClientConnection implements Runnable {
                 msg.wait(timeoutMs);
             }
 
+//            System.out.println("Sending from: " + Thread.currentThread().getName());
             if (msg.getResponse() == null) {
                 timeoutCount++;
                 throw new JcResponseTimeoutException("No response received, timeout. APP_NAME: ["
@@ -179,8 +184,6 @@ public class JcClientConnection implements Runnable {
         return null;
     }
 
-
-
     @Override
     public void run() {
 
@@ -189,7 +192,7 @@ public class JcClientConnection implements Runnable {
         } else {
             Thread.currentThread().setName(desc.getAppName() + "-" + hostName + ":" + port + "-INBOUND");
         }
-        
+
         try {
             connect();
         } catch (JcSocketConnectException ex) {
@@ -216,7 +219,7 @@ public class JcClientConnection implements Runnable {
             } else {
                 try {
                     JcMessage request = (JcMessage) ois.readObject();
-                    manager.getExecutorService().submit(new ExecuteMethod(oos, request));
+                    manager.getExecutorService().submit(new MethodExecutor(oos, request));
                     rxCount++;
                 } catch (ClassNotFoundException | IOException ex) {
                     running = false;
@@ -245,11 +248,14 @@ public class JcClientConnection implements Runnable {
 
                 JcMessage response = (JcMessage) readObject;
 //                            JcMsgResponse respMsg = new JcMsgResponse(request.getRequestId(), readObject);
-                JcMessage request = reqRespMap.remove(response.getRequestId());
-                if (request != null) {
-                    synchronized (request) {
-                        request.setResponse(response.getResponse());
-                        request.notifyAll();
+
+                synchronized (reqRespMap) {
+                    JcMessage request = reqRespMap.remove(response.getRequestId());
+                    if (request != null) {
+                        synchronized (request) {
+                            request.setResponse(response.getResponse());
+                            request.notifyAll();
+                        }
                     }
                 }
             }
@@ -258,6 +264,8 @@ public class JcClientConnection implements Runnable {
             try {
                 Thread.sleep(5000);
                 connect();
+                ois.reset();
+                oos.reset();
                 errCount++;
                 Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
 
@@ -267,20 +275,21 @@ public class JcClientConnection implements Runnable {
             } catch (JcSocketConnectException ex1) {
                 errCount++;
                 Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex1);
+            } catch (IOException ex1) {
+                Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex1);
             }
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(JcClientConnection.class
-                    .getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
 
     public void destroy() {
         try {
-            oos.close();
-            ois.close();
             running = false;
             socket.close();
+//            oos.close();
+//            ois.close();
             parallelConnectionCount--;
 
         } catch (IOException ex) {

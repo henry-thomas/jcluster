@@ -5,6 +5,7 @@
 package org.jcluster.sockets;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
@@ -29,8 +30,11 @@ public class JcServerEndpoint implements Runnable {
     @Override
     public void run() {
         try {
-            server = new ServerSocket(manager.getThisDescriptor().getIpPort());
+            server = new ServerSocket();
             server.setReuseAddress(true);
+            
+            InetSocketAddress address = new InetSocketAddress(manager.getThisDescriptor().getIpPort());
+            server.bind(address);
             running = true;
             while (running) {
                 Socket sock = server.accept();

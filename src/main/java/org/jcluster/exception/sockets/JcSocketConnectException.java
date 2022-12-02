@@ -2,13 +2,15 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Exception.java to edit this template
  */
-package org.jcluster.sockets.exception;
+package org.jcluster.exception.sockets;
+
+import org.jcluster.exception.JcRuntimeException;
 
 /**
  *
  * @author henry
  */
-public class JcSocketConnectException extends Exception{
+public class JcSocketConnectException extends JcRuntimeException{
 
     /**
      * Creates a new instance of <code>JcSocketConnectException</code> without

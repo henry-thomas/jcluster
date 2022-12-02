@@ -2,15 +2,16 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Exception.java to edit this template
  */
-package org.jcluster.sockets.exception;
+package org.jcluster.exception.sockets;
 
+import org.jcluster.exception.JcRuntimeException;
 import org.jcluster.messages.JcMessage;
 
 /**
  *
  * @author henry
  */
-public class JcResponseTimeoutException extends Exception {
+public class JcResponseTimeoutException extends JcRuntimeException {
 
     private JcMessage jcMessage;
 

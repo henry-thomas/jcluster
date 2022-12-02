@@ -13,6 +13,9 @@ import javax.inject.Named;
 import org.jcluster.messages.JcMessage;
 import com.mypower24.test2.interfaces.IBusinessMethods;
 import com.mypower24.test2.interfaces.IMoreBusinessMethods;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.PostConstruct;
 
 /**
  *
@@ -23,6 +26,22 @@ import com.mypower24.test2.interfaces.IMoreBusinessMethods;
 public class CoolView implements Serializable {
 
     private static final Logger LOG = Logger.getLogger(CoolView.class.getName());
+
+    private final List<String> emptyMsg = new ArrayList<>();
+    private final List<String> smallData = new ArrayList<>();
+    private final List<String> bigData = new ArrayList<>();
+
+    @PostConstruct
+    public void init() {
+        for (int i = 0; i < 100; i++) {
+            smallData.add("1234567890_" + i);
+        }
+
+        for (int i = 0; i < 100_000; i++) {
+            bigData.add("1234567890_" + i);
+        }
+
+    }
 
     @Inject
     Instance<IBusinessMethods> iFace;
@@ -44,8 +63,9 @@ public class CoolView implements Serializable {
 
     public void test() {
 //        result = iFace.execBusinessMethod("sad", "SLV01234");
-        result = iFace.get().execBusinessMethod("asd", "SLV01234");
+        result = iFace.get().execBusinessMethod(bigData, "SLV01234");
     }
+
     public void testAnother() {
 //        result = iFace.execBusinessMethod("sad", "SLV01234");
         result = anotherIFace.get().execAnotherBusinessMethod("Pieter").getSurname();

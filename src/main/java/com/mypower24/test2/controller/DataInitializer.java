@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import org.jcluster.cluster.JcFactory;
@@ -62,6 +63,11 @@ public class DataInitializer {
             JcFactory.getManager().addFilter("name", key);
         }
     }
+
+//    @PreDestroy
+//    public void destroy() {
+//        JcFactory.getManager().destroy();
+//    }
 
     public HashMap<String, Dummy> getDataMap() {
         return dataMap;

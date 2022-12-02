@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import javax.naming.NamingException;
 import org.jcluster.ServiceLookup;
 import org.jcluster.annotation.JcCommand;
+import org.jcluster.exception.sockets.JcMethodNotFoundException;
 import org.jcluster.messages.JcMessage;
 import org.jcluster.messages.JcMsgResponse;
 
@@ -22,13 +23,13 @@ import org.jcluster.messages.JcMsgResponse;
  *
  * @author henry
  */
-public class ExecuteMethod implements Runnable {
+public class MethodExecutor implements Runnable {
 
     private final ObjectOutputStream oos;
     private final JcMessage request;
-    private static final Logger LOG = Logger.getLogger(ExecuteMethod.class.getName());
+    private static final Logger LOG = Logger.getLogger(MethodExecutor.class.getName());
 
-    public ExecuteMethod(ObjectOutputStream oos, JcMessage msg) {
+    public MethodExecutor(ObjectOutputStream oos, JcMessage msg) {
         this.oos = oos;
         this.request = msg;
     }
@@ -54,7 +55,7 @@ public class ExecuteMethod implements Runnable {
             try {
                 service = ServiceLookup.getService(jndiName);
             } catch (NamingException ex) {
-                response = new JcMsgResponse(request.getRequestId(), ex);
+                response = new JcMsgResponse(request.getRequestId(), (JcMethodNotFoundException) ex);
                 request.setResponse(response);
                 sendAck(request);
                 Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);

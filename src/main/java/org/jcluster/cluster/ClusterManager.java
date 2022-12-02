@@ -21,9 +21,9 @@ import org.jcluster.ServiceLookup;
 import org.jcluster.bean.JcAppCluster;
 import org.jcluster.bean.JcAppDescriptor;
 import org.jcluster.bean.JcAppInstanceData;
-import org.jcluster.cluster.exception.JcClusterNotFoundException;
-import org.jcluster.cluster.exception.JcFilterNotFoundException;
-import org.jcluster.cluster.exception.JcInstanceNotFoundException;
+import org.jcluster.exception.cluster.JcClusterNotFoundException;
+import org.jcluster.exception.cluster.JcFilterNotFoundException;
+import org.jcluster.exception.cluster.JcInstanceNotFoundException;
 import org.jcluster.cluster.hzUtils.HzController;
 import org.jcluster.proxy.JcProxyMethod;
 import org.jcluster.sockets.JcClientConnection;
@@ -216,8 +216,6 @@ public final class ClusterManager {
         }
         return idDescMap;
     }
-
-    ;
 
     private String getSendInstance(Map<String, JcAppDescriptor> idDescMap, Map<String, Integer> paramNameIdxMap, Object[] args) throws JcFilterNotFoundException {
         for (Map.Entry<String, JcAppDescriptor> entry : idDescMap.entrySet()) {
