@@ -4,13 +4,9 @@
  */
 package org.jcluster.sockets;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -18,10 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.naming.NamingException;
-import org.jcluster.ServiceLookup;
-import org.jcluster.annotation.JcCommand;
 import org.jcluster.bean.JcAppDescriptor;
+import org.jcluster.bean.JcAppInstanceData;
 import org.jcluster.cluster.ClusterManager;
 import org.jcluster.cluster.JcFactory;
 import org.jcluster.cluster.hzUtils.HzController;
@@ -44,7 +38,7 @@ public class JcClientConnection implements Runnable {
     private String connId;
     private final int port;
     private final String hostName;
-    private final Socket socket;
+    private Socket socket;
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
     private static int parallelConnectionCount = 0;
@@ -72,11 +66,14 @@ public class JcClientConnection implements Runnable {
             paralConnWaterMark = parallelConnectionCount;
             System.out.println("Number of connections reached: " + paralConnWaterMark);
         }
+
+        this.connId = desc.getAppName() + "-" + hostName + ":" + port + "-INBOUND";
     }
 
     public JcClientConnection(JcAppDescriptor desc) {
+
         this.desc = desc;
-        this.socket = new Socket();
+
         this.connType = ConnectionType.OUTBOUND;
         this.port = this.desc.getIpPort();
         this.hostName = this.desc.getIpAddress();
@@ -85,14 +82,17 @@ public class JcClientConnection implements Runnable {
             paralConnWaterMark = parallelConnectionCount;
             System.out.println("Number of connections reached: " + paralConnWaterMark);
         }
+        this.connId = desc.getAppName() + "-" + hostName + ":" + port + "-OUTBOUND";
     }
 
     private boolean connect() throws JcSocketConnectException {
-        if (!socket.isConnected() || socket.isClosed()) {
+        if (socket == null || !socket.isConnected() || socket.isClosed()) {
             try {
                 //            try {
                 SocketAddress socketAddress = new InetSocketAddress(this.hostName, this.port);
                 //try connect with timeout of 2000ms
+                this.socket = new Socket();
+
                 socket.connect(socketAddress, 2000);
 
                 LOG.log(Level.INFO, "Connected to: {0}:{1}", new Object[]{this.hostName, this.port});
@@ -171,27 +171,25 @@ public class JcClientConnection implements Runnable {
             }
 
             return msg.getResponse();
+
         } catch (IOException | InterruptedException ex) {
+//            running = false;
             Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
         } catch (JcResponseTimeoutException ex) {
             //Forwarding the exception to whoever was calling this method.
             JcMsgResponse resp = new JcMsgResponse(msg.getRequestId(), ex);
             msg.setResponse(resp);
-            Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex.getMessage());
+//            Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex.getMessage());
             return resp;
 
         }
-        return null;
     }
 
     @Override
     public void run() {
 
-        if (connType == ConnectionType.OUTBOUND) {
-            Thread.currentThread().setName(desc.getAppName() + "-" + hostName + ":" + port + "-OUTBOUND");
-        } else {
-            Thread.currentThread().setName(desc.getAppName() + "-" + hostName + ":" + port + "-INBOUND");
-        }
+        Thread.currentThread().setName(this.connId);
 
         try {
             connect();
@@ -221,9 +219,10 @@ public class JcClientConnection implements Runnable {
                     JcMessage request = (JcMessage) ois.readObject();
                     manager.getExecutorService().submit(new MethodExecutor(oos, request));
                     rxCount++;
-                } catch (ClassNotFoundException | IOException ex) {
+                } catch (IOException ex) {
+//                    Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
                     running = false;
-                    errCount++;
+                } catch (ClassNotFoundException ex) {
                     Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
@@ -261,23 +260,7 @@ public class JcClientConnection implements Runnable {
             }
         } catch (IOException ex) {
 //            running = false;
-            try {
-                Thread.sleep(5000);
-                connect();
-                ois.reset();
-                oos.reset();
-                errCount++;
-                Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
-
-            } catch (InterruptedException ex1) {
-                errCount++;
-                Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (JcSocketConnectException ex1) {
-                errCount++;
-                Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex1);
-            } catch (IOException ex1) {
-                Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex1);
-            }
+            errCount++;
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -288,8 +271,8 @@ public class JcClientConnection implements Runnable {
         try {
             running = false;
             socket.close();
-//            oos.close();
-//            ois.close();
+            JcAppInstanceData.getInstance().getInboundConnections().remove(connId);
+            JcAppInstanceData.getInstance().getOuboundConnections().remove(connId);
             parallelConnectionCount--;
 
         } catch (IOException ex) {
@@ -299,6 +282,10 @@ public class JcClientConnection implements Runnable {
 
     public JcAppDescriptor getDesc() {
         return desc;
+    }
+
+    public String getConnId() {
+        return connId;
     }
 
 }

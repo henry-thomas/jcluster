@@ -41,11 +41,7 @@ public class JcAppCluster {
         }
 
         JcClientConnection remove = instanceMap.remove(instance.getInstanceId());
-        if (remove == null) {
-            return false;
-        }
-
-        return true;
+        return remove != null;
     }
 
     public boolean broadcast(JcProxyMethod proxyMethod, Object[] args) {
@@ -74,7 +70,6 @@ public class JcAppCluster {
 
     public void destroy() {
         for (Map.Entry<String, JcClientConnection> entry : instanceMap.entrySet()) {
-            String key = entry.getKey();
             JcClientConnection conn = entry.getValue();
             conn.destroy();
         }

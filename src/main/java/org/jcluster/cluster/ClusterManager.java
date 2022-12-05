@@ -9,9 +9,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PreDestroy;
@@ -25,6 +22,8 @@ import org.jcluster.exception.cluster.JcClusterNotFoundException;
 import org.jcluster.exception.cluster.JcFilterNotFoundException;
 import org.jcluster.exception.cluster.JcInstanceNotFoundException;
 import org.jcluster.cluster.hzUtils.HzController;
+import org.jcluster.messages.JcMessage;
+import org.jcluster.messages.JcMsgResponse;
 import org.jcluster.proxy.JcProxyMethod;
 import org.jcluster.sockets.JcClientConnection;
 import org.jcluster.sockets.JcServerEndpoint;
@@ -106,13 +105,47 @@ public final class ClusterManager {
             bindAddress = "tcp://" + thisDescriptor.getIpAddress() + ":" + thisDescriptor.getIpPort();
             server = new JcServerEndpoint();
             executorService.submit(server);
-//            Thread t = new Thread(server);
-//            t.start();
+
+            //adding this app to the shared appMap, 
+            //which is visible to all other apps in the Hazelcast Cluster
             appMap.put(thisDescriptor.getInstanceId(), thisDescriptor);
-//            exec.submit(this::initMainThread);
-//            exec.submit(jcServer);
+
+            executorService.submit(this::initConnectionChecker);
             running = true;
         }
+    }
+
+    public void initConnectionChecker() {
+        Thread.currentThread().setName("J-CLUSTER_Health_Checker_Thread");
+        while (running) {
+
+            Map<String, JcClientConnection> ouboundConnections = JcAppInstanceData.getInstance().getOuboundConnections();
+            for (Map.Entry<String, JcClientConnection> entry : ouboundConnections.entrySet()) {
+                JcClientConnection conn = entry.getValue();
+
+                JcMessage req = new JcMessage("ping", null, null);
+                JcMsgResponse send = conn.send(req);
+                if (send.getData() == null || !send.getData().equals("pong")) {
+                    JcAppDescriptor desc = conn.getDesc();
+
+                    conn.destroy();
+                    ouboundConnections.remove(conn.getConnId());
+
+                    JcClientConnection jcClientConnection = new JcClientConnection(desc);
+                    executorService.submit(jcClientConnection);
+                    ouboundConnections.put(jcClientConnection.getConnId(), jcClientConnection);
+                    LOG.log(Level.INFO, "Reconnected to: {0} {1}:{2}", new Object[]{desc.getAppName(), desc.getIpAddress(), desc.getIpPort()});
+                }
+            }
+
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(ClusterManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        LOG.info("Shutting down J-CLUSTER_Health_Checker_Thread");
     }
 
     public void onNewMemberJoin(JcAppDescriptor i) {
@@ -132,15 +165,13 @@ public final class ClusterManager {
 
             if (cluster.getInstanceMap().containsKey(id)
                     || Objects.equals(desc.getInstanceId(), thisDescriptor.getInstanceId())
-                    || Objects.equals(desc.getIpAddress() + desc.getIpPort(),
-                            thisDescriptor.getIpAddress() + thisDescriptor.getIpPort())) {
+                    || Objects.equals(desc.getIpAddress() + desc.getIpPort(), thisDescriptor.getIpAddress() + thisDescriptor.getIpPort())) {
                 continue;
             }
 
-            LOG.log(Level.INFO, "Connecting to app{0} at: {1}", new Object[]{desc.getAppName(), addr});
+            LOG.log(Level.INFO, "Connecting to app {0} at: {1}", new Object[]{desc.getAppName(), addr});
 
             //Creating an outbound connection as soon as a new member joins.
-            //Outbound connections behave diffently when receiving messages
             JcClientConnection jcClientConnection = new JcClientConnection(desc);
             executorService.submit(jcClientConnection);
 //            Thread t = new Thread(jcClientConnection);
@@ -165,10 +196,8 @@ public final class ClusterManager {
                     return;
                 }
 
-                clusterMap.remove(instance.getInstanceId());
-
             } else {
-                LOG.log(Level.WARNING, "Tried to remove cluster that does not exist!");
+                LOG.log(Level.WARNING, "Tried to remove instance from cluster that does not exist!");
             }
 
         }

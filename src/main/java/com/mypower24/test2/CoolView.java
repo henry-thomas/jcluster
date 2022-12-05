@@ -31,6 +31,8 @@ public class CoolView implements Serializable {
     private final List<String> smallData = new ArrayList<>();
     private final List<String> bigData = new ArrayList<>();
 
+    private Object largeDataResult;
+
     @PostConstruct
     public void init() {
         for (int i = 0; i < 100; i++) {
@@ -63,12 +65,16 @@ public class CoolView implements Serializable {
 
     public void test() {
 //        result = iFace.execBusinessMethod("sad", "SLV01234");
-        result = iFace.get().execBusinessMethod(bigData, "SLV01234");
+        result = iFace.get().execBusinessMethod(bigData, "SLV012345");
     }
 
     public void testAnother() {
 //        result = iFace.execBusinessMethod("sad", "SLV01234");
         result = anotherIFace.get().execAnotherBusinessMethod("Pieter").getSurname();
+//        long start = System.currentTimeMillis();
+//
+//        largeDataResult = anotherIFace.get().getLargeData();
+//        result = String.valueOf(System.currentTimeMillis() - start + " ms");
     }
 
     public String getResult() {

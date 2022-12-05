@@ -18,4 +18,9 @@ import org.jcluster.annotation.JcRemote;
 public interface IMoreBusinessMethods {
 
     public Dummy execAnotherBusinessMethod(@JcInstanceFilter(filterName = "name") String name);
+    
+    //This method has no @JcInstanceFilter param annotation, so the execution 
+    //will be broadcast to all apps with appName "lws" and a boolean value 
+    //indicating the success of the broadcast will be returned.
+    public Object getLargeData();
 }

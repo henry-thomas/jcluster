@@ -5,8 +5,8 @@
 package org.jcluster.bean;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import org.jcluster.sockets.JcClientConnection;
 
 /**
@@ -18,8 +18,8 @@ public class JcAppInstanceData implements Serializable {
     private final String serialVersionUID = "-1455291844074901991";
 
     private JcAppDescriptor desc;
-    private final List<JcClientConnection> ouboundConnections = new ArrayList<>();
-    private final List<JcClientConnection> inboundConnections = new ArrayList<>();
+    private final Map<String, JcClientConnection> ouboundConnections = new HashMap<>();
+    private final Map<String, JcClientConnection> inboundConnections = new HashMap<>();
     private static JcAppInstanceData INSTANCE;
 
     public static JcAppInstanceData getInstance() {
@@ -34,22 +34,24 @@ public class JcAppInstanceData implements Serializable {
     }
 
     public void addOutboundConnection(JcClientConnection conn) {
-        ouboundConnections.add(conn);
+
+        ouboundConnections.put(conn.getConnId(), conn);
     }
 
     public void addInboundConnection(JcClientConnection conn) {
-        inboundConnections.add(conn);
+
+        inboundConnections.put(conn.getConnId(), conn);
     }
 
     public JcAppDescriptor getDesc() {
         return desc;
     }
 
-    public List<JcClientConnection> getOuboundConnections() {
+    public Map<String, JcClientConnection> getOuboundConnections() {
         return ouboundConnections;
     }
 
-    public List<JcClientConnection> getInboundConnections() {
+    public Map<String, JcClientConnection> getInboundConnections() {
         return inboundConnections;
     }
 

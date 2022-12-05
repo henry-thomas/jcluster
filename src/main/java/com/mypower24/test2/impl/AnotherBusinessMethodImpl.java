@@ -25,4 +25,9 @@ public class AnotherBusinessMethodImpl implements IMoreBusinessMethods {
         return data.getDataMap().get(name);
     }
 
+    @Override
+    public Object getLargeData() {
+        return data.getBigData();
+    }
+
 }

@@ -11,11 +11,7 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.LifecycleService;
 import com.hazelcast.map.IMap;
-import org.jcluster.messages.Destination;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.jcluster.bean.JcAppCluster;
 import org.jcluster.bean.JcAppDescriptor;
 
 /**

@@ -32,15 +32,26 @@ public class JcServerEndpoint implements Runnable {
         try {
             server = new ServerSocket();
             server.setReuseAddress(true);
-            
+
             InetSocketAddress address = new InetSocketAddress(manager.getThisDescriptor().getIpPort());
             server.bind(address);
             running = true;
             while (running) {
+
                 Socket sock = server.accept();
+                String connId = JcFactory.getManager().getThisDescriptor().getAppName() + "-" + sock.getInetAddress().getHostAddress() + ":" + sock.getLocalPort() + "-INBOUND";
+
+                JcClientConnection conn = connMap.get(connId);
+                //remove old connections, recreate them.
+                if (conn != null) {
+                    conn.destroy();
+                    connMap.remove(connId);
+                }
 
                 JcClientConnection jcClientConnection = new JcClientConnection(sock);
-                connMap.put(sock.getInetAddress().getHostAddress() + "-" + sock.getPort(), jcClientConnection);
+
+                connMap.put(connId, jcClientConnection);
+
                 JcAppInstanceData.getInstance().addInboundConnection(jcClientConnection);
 
                 Thread cThread = new Thread(jcClientConnection);
@@ -49,7 +60,8 @@ public class JcServerEndpoint implements Runnable {
 
             server.close();
         } catch (IOException ex) {
-            Logger.getLogger(JcServerEndpoint.class.getName()).log(Level.SEVERE, null, ex);
+            running = false;
+//            Logger.getLogger(JcServerEndpoint.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
