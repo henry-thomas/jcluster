@@ -49,6 +49,11 @@ public class MethodExecutor implements Runnable {
         JcMsgResponse response;
         String jndiName;
         try {
+            if(request.getMethodName().equals("ping")){
+                handlePing();
+                return;
+            }
+            
             jndiName = request.getClassName() + "#" + request.getClassName();
             Object service;
 
@@ -62,18 +67,9 @@ public class MethodExecutor implements Runnable {
                 return;
             }
 
-            //TODO To be cached later
-            Map<String, Method> commands = new HashMap<>();
-
-            for (Method method : service.getClass().getMethods()) {
-                if (method.isAnnotationPresent(JcCommand.class)) {
-                    JcCommand tCommand = method.getAnnotation(JcCommand.class);
-                }
-                commands.put(method.getName(), method);
-            }
-
-            Method method = commands.get(request.getMethodName());
+            Method method = ServiceLookup.getINSTANCE().getMethod(service, request.getMethodName());
             Object result = method.invoke(service, request.getArgs());
+
 
             //Do work, then assign response here
             response = new JcMsgResponse(request.getRequestId(), result);
@@ -84,6 +80,12 @@ public class MethodExecutor implements Runnable {
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    private void handlePing(){
+        JcMsgResponse response = new JcMsgResponse(request.getRequestId(), "pong");
+        request.setResponse(response);
+        sendAck(request);
     }
 
 }

@@ -4,8 +4,9 @@
  */
 package org.jcluster;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
@@ -15,12 +16,43 @@ import javax.naming.NamingException;
  */
 public class ServiceLookup {
 
-    public static Object getService(String jndiName) throws NamingException {
-        Object serviceObj = null;
+    //<serviceName, <methodName, method>>
+    private final Map<String, Map<String, Method>> serviceMethodsMap = new HashMap<>();
 
-        InitialContext ctx = new InitialContext();
-        serviceObj = ctx.lookup(jndiName);
+    private final Map<String, Object> jndiLookupMap = new HashMap<>();
+
+    private static final ServiceLookup INSTANCE = new ServiceLookup();
+
+    public static ServiceLookup getINSTANCE() {
+        return INSTANCE;
+    }
+
+    public static Object getService(String jndiName) throws NamingException {
+//        Object serviceObj = null;
+
+        Object serviceObj = INSTANCE.jndiLookupMap.get(jndiName);
+
+        if (serviceObj == null) {
+            InitialContext ctx = new InitialContext();
+            serviceObj = ctx.lookup(jndiName);
+
+            INSTANCE.jndiLookupMap.put(jndiName, serviceObj);
+        }
 
         return serviceObj;
     }
+
+    public Method getMethod(Object service, String methodName) {
+        Map<String, Method> methodMap = serviceMethodsMap.get(service.getClass().getName());
+
+        if (methodMap == null) {
+            methodMap = new HashMap<>();
+            for (Method method : service.getClass().getMethods()) {
+                methodMap.put(method.getName(), method);
+            }
+            serviceMethodsMap.put(service.getClass().getName(), methodMap);
+        }
+        return methodMap.get(methodName);
+    }
+
 }
