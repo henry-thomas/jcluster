@@ -284,6 +284,13 @@ public class JcClientConnection implements Runnable {
 
     }
 
+    public void stopSocket() {
+        try {
+            socket.close();
+        } catch (IOException e) {
+        }
+    }
+
     public void destroy() {
 
         running = false;

@@ -16,6 +16,7 @@ import com.mypower24.test2.interfaces.IMoreBusinessMethods;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
+import org.jcluster.cluster.JcFactory;
 
 /**
  *
@@ -70,6 +71,10 @@ public class CoolView implements Serializable {
         } catch (Throwable e) {
             LOG.info("Could not get message");
         }
+    }
+
+    public void stopSocket() {
+        JcFactory.getManager().socketStopTest();
     }
 
     public void testAnother() {

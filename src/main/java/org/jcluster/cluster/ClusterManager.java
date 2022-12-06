@@ -142,7 +142,7 @@ public final class ClusterManager {
             }
 
             try {
-                Thread.sleep(5000);
+                Thread.sleep(3000);
             } catch (InterruptedException ex) {
                 Logger.getLogger(ClusterManager.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -277,6 +277,14 @@ public final class ClusterManager {
 
     public JcAppDescriptor getThisDescriptor() {
         return thisDescriptor;
+    }
+
+    public void socketStopTest() {
+        Map<String, JcClientConnection> ouboundConnections = JcAppInstanceData.getInstance().getOuboundConnections();
+        for (Map.Entry<String, JcClientConnection> entry : ouboundConnections.entrySet()) {
+            JcClientConnection conn = entry.getValue();
+            conn.destroy();
+        }
     }
 
     @PreDestroy
