@@ -23,6 +23,7 @@ import org.jcluster.exception.cluster.JcClusterNotFoundException;
 import org.jcluster.exception.cluster.JcFilterNotFoundException;
 import org.jcluster.exception.cluster.JcInstanceNotFoundException;
 import org.jcluster.cluster.hzUtils.HzController;
+import org.jcluster.config.JcAppConfig;
 import org.jcluster.messages.JcMessage;
 import org.jcluster.messages.JcMsgResponse;
 import org.jcluster.proxy.JcProxyMethod;
@@ -123,15 +124,19 @@ public final class ClusterManager {
             Map<String, JcClientConnection> ouboundConnections = JcAppInstanceData.getInstance().getOuboundConnections();
             for (Map.Entry<String, JcClientConnection> entry : ouboundConnections.entrySet()) {
                 JcClientConnection conn = entry.getValue();
+                long now = System.currentTimeMillis();
+                if (now - conn.getLastSuccessfulSend() < JcAppConfig.getINSTANCE().getJcLastSendMaxTimeout()) {
+                    continue;
+                }
 
                 JcMessage req = new JcMessage("ping", null, null);
-                JcMsgResponse resp = conn.send(req);
+                JcMsgResponse resp = conn.send(req, 1000);
                 if (resp.getData() == null || !resp.getData().equals("pong")) {
                     JcAppDescriptor desc = conn.getDesc();
-                    
+
                     onMemberLeave(desc);
                     onNewMemberJoin(desc);
-                    
+
                     LOG.log(Level.INFO, "Reconnected to: {0} {1}:{2}", new Object[]{desc.getAppName(), desc.getIpAddress(), desc.getIpPort()});
                 }
             }

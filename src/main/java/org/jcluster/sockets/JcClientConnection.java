@@ -16,7 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jcluster.bean.JcAppDescriptor;
-import org.jcluster.bean.JcAppInstanceData;
 import org.jcluster.cluster.ClusterManager;
 import org.jcluster.cluster.JcFactory;
 import org.jcluster.cluster.hzUtils.HzController;
@@ -51,6 +50,8 @@ public class JcClientConnection implements Runnable {
     private int rxCount = 0;
     private int errCount = 0;
     private int timeoutCount = 0;
+    private long lastSuccessfulSend = 0l;
+
     private final Object writeLock = new Object();
 
     private final ConcurrentHashMap<Long, JcMessage> reqRespMap = new ConcurrentHashMap<>();
@@ -186,7 +187,7 @@ public class JcClientConnection implements Runnable {
                         + "] METHOD: [" + msg.getMethodName()
                         + "] INSTANCE_ID: [" + desc.getInstanceId() + "]", msg);
             }
-
+            lastSuccessfulSend = System.currentTimeMillis();
             return msg.getResponse();
 
         } catch (IOException | InterruptedException ex) {
@@ -306,6 +307,10 @@ public class JcClientConnection implements Runnable {
 
     public boolean isRunning() {
         return running;
+    }
+
+    public long getLastSuccessfulSend() {
+        return lastSuccessfulSend;
     }
 
 }

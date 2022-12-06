@@ -16,6 +16,7 @@ import javax.annotation.PreDestroy;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import org.jcluster.cluster.JcFactory;
+import org.jcluster.config.JcAppConfig;
 
 /**
  *
@@ -48,9 +49,13 @@ public class DataInitializer {
         //E.G. in Payara, in DAC, in server-config -> System Properties
         //Add them there.
         //If someone can think of a better way, please mention.
-        Integer port = Integer.valueOf(System.getProperty("JC_PORT"));
-        String hostName = System.getProperty("JC_HOSTNAME");
-        String appName = System.getProperty("JC_APP_NAME");
+        
+        //They are read by JcAppConfig, so all accessible from there throughout
+        //the project.
+        
+        Integer port = JcAppConfig.getINSTANCE().getPort();
+        String hostName = JcAppConfig.getINSTANCE().getHostName();
+        String appName = JcAppConfig.getINSTANCE().getAppName();
 
         //For Testing, add values to filter here
         String ser;

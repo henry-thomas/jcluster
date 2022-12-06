@@ -13,6 +13,7 @@ import com.hazelcast.core.LifecycleService;
 import com.hazelcast.map.IMap;
 import java.util.Map;
 import org.jcluster.bean.JcAppDescriptor;
+import org.jcluster.config.JcAppConfig;
 
 /**
  *
@@ -42,7 +43,10 @@ public class HzController {
 
     private void setDiscoveryConfig() {
         JoinConfig join = new JoinConfig();
-        DiscoveryConfig discoveryConfig = join.getDiscoveryConfig();
+        join.getMulticastConfig().setEnabled(false);
+        join.getTcpIpConfig().setEnabled(true);
+
+        join.getTcpIpConfig().getMembers().add(JcAppConfig.getINSTANCE().getJcHzPrimaryMember());
         hzConfig.getNetworkConfig().setJoin(join);
     }
 
