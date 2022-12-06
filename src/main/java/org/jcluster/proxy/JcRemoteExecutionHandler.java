@@ -4,14 +4,9 @@
  */
 package org.jcluster.proxy;
 
-import org.jcluster.annotation.JcRemote;
-import org.jcluster.annotation.JcInstanceFilter;
-import org.jcluster.messages.JcMessage;
 import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;

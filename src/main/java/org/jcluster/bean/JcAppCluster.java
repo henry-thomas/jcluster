@@ -30,6 +30,9 @@ public class JcAppCluster {
     public Object send(JcProxyMethod proxyMethod, Object[] args, String sendInstanceId) {
         JcMessage msg = new JcMessage(proxyMethod.getMethodName(), proxyMethod.getClassName(), args);
 //        return null;
+        if (!instanceMap.get(sendInstanceId).isRunning()) {
+            LOG.warning("We have an instance that is not running");
+        }
         return instanceMap.get(sendInstanceId).send(msg).getData();
     }
 

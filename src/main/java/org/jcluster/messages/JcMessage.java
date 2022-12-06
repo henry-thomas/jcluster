@@ -5,6 +5,7 @@
 package org.jcluster.messages;
 
 import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *
@@ -14,20 +15,20 @@ public class JcMessage implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private final int requestId;
+    private final long requestId;
     private final String methodName;
     private final String className;
     private final Object[] args; //arguments for method execution
     private JcMsgResponse response;
 //    private final Object lock = new Object(); //Sync on lock
 
-    private static int MSG_ID_INCR = 0;
+    private static final AtomicLong MSG_ID_INCR = new AtomicLong();
 
     public JcMessage(String methodName, String className, Object[] args) {
         this.methodName = methodName;
         this.className = className;
         this.args = args;
-        this.requestId = MSG_ID_INCR ++;
+        this.requestId = MSG_ID_INCR.getAndIncrement();
     }
 
     public JcMsgResponse getResponse() {
@@ -41,8 +42,7 @@ public class JcMessage implements Serializable {
 //    public static long getSerialVersionUID() {
 //        return serialVersionUID;
 //    }
-
-    public int getRequestId() {
+    public long getRequestId() {
         return requestId;
     }
 
@@ -61,7 +61,4 @@ public class JcMessage implements Serializable {
 //    public Object getLock() {
 //        return lock;
 //    }
-    
-    
-
 }

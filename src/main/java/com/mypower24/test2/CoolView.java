@@ -35,14 +35,15 @@ public class CoolView implements Serializable {
 
     @PostConstruct
     public void init() {
-        for (int i = 0; i < 100; i++) {
-            smallData.add("1234567890_" + i);
-        }
+//        for (int i = 0; i < 100; i++) {
+//            smallData.add("1234567890_" + i);
+//        }
+//
+//        for (int i = 0; i < 100_000; i++) {
+//            bigData.add("1234567890_" + i);
+//        }
 
-        for (int i = 0; i < 100_000; i++) {
-            bigData.add("1234567890_" + i);
-        }
-
+        test();
     }
 
     @Inject
@@ -64,8 +65,11 @@ public class CoolView implements Serializable {
     }
 
     public void test() {
-//        result = iFace.execBusinessMethod("sad", "SLV01234");
-        result = iFace.get().execBusinessMethod(bigData, "SLV012345");
+        try {
+            result = iFace.get().execBusinessMethod("", "SLV012345");
+        } catch (Throwable e) {
+            LOG.info("Could not get message");
+        }
     }
 
     public void testAnother() {

@@ -12,6 +12,7 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jcluster.bean.JcAppDescriptor;
@@ -52,7 +53,7 @@ public class JcClientConnection implements Runnable {
     private int timeoutCount = 0;
     private final Object writeLock = new Object();
 
-    private final Map<Integer, JcMessage> reqRespMap = new HashMap<>();
+    private final ConcurrentHashMap<Long, JcMessage> reqRespMap = new ConcurrentHashMap<>();
 
     public JcClientConnection(Socket sock) {
         this.desc = JcFactory.getManager().getThisDescriptor();
@@ -85,25 +86,34 @@ public class JcClientConnection implements Runnable {
         this.connId = desc.getAppName() + "-" + hostName + ":" + port + "-OUTBOUND";
     }
 
+    private void reconnect() {
+        if (socket != null) {
+            try {
+                socket.close();
+            } catch (IOException ex) {
+                Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        if (!socket.isConnected() || socket.isClosed()) {
+            connect();
+        }
+    }
+
     private boolean connect() throws JcSocketConnectException {
         if (socket == null || !socket.isConnected() || socket.isClosed()) {
             try {
                 //            try {
                 SocketAddress socketAddress = new InetSocketAddress(this.hostName, this.port);
-                //try connect with timeout of 2000ms
                 this.socket = new Socket();
+//                this.socket.setTcpNoDelay(true);
 
+                //try connect with timeout of 2000ms
                 socket.connect(socketAddress, 2000);
 
                 LOG.log(Level.INFO, "Connected to: {0}:{1}", new Object[]{this.hostName, this.port});
 
-//            } catch (IOException ex) {
-//                LOG.log(Level.SEVERE, "Could not connect to: {0}:{1} Exception: {2}", new Object[]{desc.getIpAddress(), desc.getIpPort(), ex.getMessage()});
-//                running = false;
-//                return false;
-//            }
             } catch (IOException ex) {
-                Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
+//                Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
                 throw new JcSocketConnectException("Could not connect to: "
                         + desc.getAppName()
                         + " at " + desc.getIpAddress()
@@ -148,13 +158,17 @@ public class JcClientConnection implements Runnable {
     public JcMsgResponse send(JcMessage msg, int timeoutMs) {
         try {
 
+            long start = System.currentTimeMillis();
+
+            txCount++;
+            reqRespMap.put(msg.getRequestId(), msg);
+
+//            if (reqRespMap.get(msg.getRequestId()) == null) {
+//            }
             synchronized (writeLock) {
                 oos.writeObject(msg);
                 oos.flush();
             }
-
-            txCount++;
-            reqRespMap.put(msg.getRequestId(), msg);
 
             synchronized (msg) {
                 msg.wait(timeoutMs);
@@ -162,7 +176,10 @@ public class JcClientConnection implements Runnable {
 
 //            System.out.println("Sending from: " + Thread.currentThread().getName());
             if (msg.getResponse() == null) {
+                reqRespMap.remove(msg.getRequestId());
                 timeoutCount++;
+                LOG.log(Level.WARNING, "Timeout req-resp: {0}ms Message ID:{1} Thread-ID: {2}", new Object[]{System.currentTimeMillis() - start, msg.getRequestId(), Thread.currentThread().getName()});
+
                 throw new JcResponseTimeoutException("No response received, timeout. APP_NAME: ["
                         + desc.getAppName() + "] ADDRESS: ["
                         + desc.getIpAddress() + ":" + String.valueOf(desc.getIpPort())
@@ -173,14 +190,16 @@ public class JcClientConnection implements Runnable {
             return msg.getResponse();
 
         } catch (IOException | InterruptedException ex) {
-//            running = false;
             Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
+            JcMsgResponse resp = new JcMsgResponse(msg.getRequestId(), ex);
+            msg.setResponse(resp);
+//            reconnect();
+            return resp;
         } catch (JcResponseTimeoutException ex) {
             //Forwarding the exception to whoever was calling this method.
             JcMsgResponse resp = new JcMsgResponse(msg.getRequestId(), ex);
             msg.setResponse(resp);
-//            Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex.getMessage());
+
             return resp;
 
         }
@@ -195,7 +214,7 @@ public class JcClientConnection implements Runnable {
             connect();
         } catch (JcSocketConnectException ex) {
             errCount++;
-            Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
+//            Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         running = true;
@@ -203,7 +222,7 @@ public class JcClientConnection implements Runnable {
             oos = new ObjectOutputStream(socket.getOutputStream());
             ois = new ObjectInputStream(socket.getInputStream());
         } catch (IOException ex) {
-            Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
+//            Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
         //Handshake
 //            if (!initHandshake()) {
@@ -211,28 +230,25 @@ public class JcClientConnection implements Runnable {
 //                return;
 //            }
 
-        while (running) {
-            if (this.connType == ConnectionType.OUTBOUND) {
+        if (this.connType == ConnectionType.OUTBOUND) {
+            while (running) {
                 getResponse();
-            } else {
+            }
+        } else {
+            while (running) {
                 try {
-                    JcMessage request = (JcMessage) ois.readObject();
-                    manager.getExecutorService().submit(new MethodExecutor(oos, request));
-                    rxCount++;
+                    if (socket.isConnected()) {
+                        JcMessage request = (JcMessage) ois.readObject();
+                        manager.getExecutorService().submit(new MethodExecutor(oos, request));
+                        rxCount++;
+                    }
                 } catch (IOException ex) {
+//                    reconnect();
 //                    Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
-                    running = false;
                 } catch (ClassNotFoundException ex) {
                     Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-        }
-
-        try {
-            parallelConnectionCount--;
-            socket.close();
-        } catch (IOException ex) {
-            Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
@@ -248,14 +264,14 @@ public class JcClientConnection implements Runnable {
                 JcMessage response = (JcMessage) readObject;
 //                            JcMsgResponse respMsg = new JcMsgResponse(request.getRequestId(), readObject);
 
-                synchronized (reqRespMap) {
-                    JcMessage request = reqRespMap.remove(response.getRequestId());
-                    if (request != null) {
-                        synchronized (request) {
-                            request.setResponse(response.getResponse());
-                            request.notifyAll();
-                        }
+                JcMessage request = reqRespMap.remove(response.getRequestId());
+                if (request != null) {
+                    synchronized (request) {
+                        request.setResponse(response.getResponse());
+                        request.notifyAll();
                     }
+                } else {
+                    LOG.log(Level.WARNING, "Request is not in Map: {0}", response.getRequestId());
                 }
             }
         } catch (IOException ex) {
@@ -268,16 +284,16 @@ public class JcClientConnection implements Runnable {
     }
 
     public void destroy() {
-        try {
-            running = false;
-            socket.close();
-            JcAppInstanceData.getInstance().getInboundConnections().remove(connId);
-            JcAppInstanceData.getInstance().getOuboundConnections().remove(connId);
-            parallelConnectionCount--;
 
+        running = false;
+
+        try {
+            socket.close();
         } catch (IOException ex) {
             Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
+
+        parallelConnectionCount--;
     }
 
     public JcAppDescriptor getDesc() {
@@ -286,6 +302,10 @@ public class JcClientConnection implements Runnable {
 
     public String getConnId() {
         return connId;
+    }
+
+    public boolean isRunning() {
+        return running;
     }
 
 }

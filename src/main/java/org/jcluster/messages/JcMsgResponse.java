@@ -12,15 +12,15 @@ import java.io.Serializable;
  */
 public class JcMsgResponse implements Serializable {
 
-    private final int requestId;
+    private final long requestId;
     private final Object data;
 
-    public JcMsgResponse(int requestId, Object data) {
+    public JcMsgResponse(long requestId, Object data) {
         this.requestId = requestId;
         this.data = data;
     }
 
-    public int getRequestId() {
+    public long getRequestId() {
         return requestId;
     }
 

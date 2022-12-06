@@ -8,13 +8,10 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.naming.NamingException;
 import org.jcluster.ServiceLookup;
-import org.jcluster.annotation.JcCommand;
 import org.jcluster.exception.sockets.JcMethodNotFoundException;
 import org.jcluster.messages.JcMessage;
 import org.jcluster.messages.JcMsgResponse;
@@ -37,7 +34,9 @@ public class MethodExecutor implements Runnable {
     public void sendAck(JcMessage msg) {
         try {
 
-            oos.writeObject(msg);
+            synchronized (oos) {
+                oos.writeObject(msg);
+            }
 
         } catch (IOException ex) {
             Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
@@ -49,11 +48,11 @@ public class MethodExecutor implements Runnable {
         JcMsgResponse response;
         String jndiName;
         try {
-            if(request.getMethodName().equals("ping")){
+            if (request.getMethodName().equals("ping")) {
                 handlePing();
                 return;
             }
-            
+
             jndiName = request.getClassName() + "#" + request.getClassName();
             Object service;
 
@@ -70,7 +69,6 @@ public class MethodExecutor implements Runnable {
             Method method = ServiceLookup.getINSTANCE().getMethod(service, request.getMethodName());
             Object result = method.invoke(service, request.getArgs());
 
-
             //Do work, then assign response here
             response = new JcMsgResponse(request.getRequestId(), result);
             request.setResponse(response);
@@ -81,8 +79,8 @@ public class MethodExecutor implements Runnable {
             Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    private void handlePing(){
+
+    private void handlePing() {
         JcMsgResponse response = new JcMsgResponse(request.getRequestId(), "pong");
         request.setResponse(response);
         sendAck(request);

@@ -5,6 +5,7 @@
 package org.jcluster.cluster;
 
 import com.hazelcast.map.IMap;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -124,16 +125,13 @@ public final class ClusterManager {
                 JcClientConnection conn = entry.getValue();
 
                 JcMessage req = new JcMessage("ping", null, null);
-                JcMsgResponse send = conn.send(req);
-                if (send.getData() == null || !send.getData().equals("pong")) {
+                JcMsgResponse resp = conn.send(req);
+                if (resp.getData() == null || !resp.getData().equals("pong")) {
                     JcAppDescriptor desc = conn.getDesc();
-
-                    conn.destroy();
-                    ouboundConnections.remove(conn.getConnId());
-
-                    JcClientConnection jcClientConnection = new JcClientConnection(desc);
-                    executorService.submit(jcClientConnection);
-                    ouboundConnections.put(jcClientConnection.getConnId(), jcClientConnection);
+                    
+                    onMemberLeave(desc);
+                    onNewMemberJoin(desc);
+                    
                     LOG.log(Level.INFO, "Reconnected to: {0} {1}:{2}", new Object[]{desc.getAppName(), desc.getIpAddress(), desc.getIpPort()});
                 }
             }
@@ -144,11 +142,11 @@ public final class ClusterManager {
                 Logger.getLogger(ClusterManager.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        
+
         LOG.info("Shutting down J-CLUSTER_Health_Checker_Thread");
     }
 
-    public void onNewMemberJoin(JcAppDescriptor i) {
+    public void onNewMemberJoin(JcAppDescriptor appDesc) {
 
         for (Map.Entry<String, JcAppDescriptor> entry : appMap.entrySet()) {
 
@@ -193,7 +191,6 @@ public final class ClusterManager {
 
                 if (!cluster.removeConnection(instance)) {
                     LOG.log(Level.WARNING, "AppInstance not in cluster!: {0}", instance.getInstanceId());
-                    return;
                 }
 
             } else {
@@ -224,7 +221,7 @@ public final class ClusterManager {
 
             if (sendInstanceId == null) {
                 //ex
-                throw new JcInstanceNotFoundException("Instance not found for " + proxyMethod.getMethodName());
+                throw new JcInstanceNotFoundException("Instance not found for [" + proxyMethod.getMethodName() + "] with params: [" + Arrays.toString(args) + "]");
             }
 
             return cluster.send(proxyMethod, args, sendInstanceId);

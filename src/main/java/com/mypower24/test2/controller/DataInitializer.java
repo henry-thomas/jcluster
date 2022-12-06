@@ -56,11 +56,11 @@ public class DataInitializer {
         String ser;
         String name;
         if (port == 4566) {
-            ser = "SLV012345";
+            ser = "SLV01234";
             dataMap.put("Nathan", new Dummy("Nathan", "Brill"));
             dataMap.put("Lawrence", new Dummy("Lawrence", "Biffy"));
         } else {
-            ser = "SLV01234";
+            ser = "SLV012345";
             dataMap.put("Pieter", new Dummy("Pieter", "Oberholzer"));
             dataMap.put("Kostadin", new Dummy("Kostadin", "Petkov"));
         }
