@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import org.jcluster.cluster.JcFactory;
+import org.jcluster.config.JcAppConfig;
 
 /**
  *
@@ -22,12 +23,13 @@ public class LifecycleListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent contextEvent) {
-//        int port = 4567;
-//        String ser = "SLV012345";
-//
-//        JcFactory.initManager("lws", "192.168.100.18", port);
-//        JcFactory.getManager().addFilter("loggerSerial", ser);
-//        LOG.log(Level.INFO, "LifecycleListener: contextInitialized() PORT: {0} SER: {1}", new Object[]{port, ser});
+        Integer port = JcAppConfig.getINSTANCE().getPort();
+        String hostName = JcAppConfig.getINSTANCE().getHostName();
+        String appName = JcAppConfig.getINSTANCE().getAppName();
+
+        //Initialize J-Cluster for this app
+        JcFactory.initManager(appName, hostName, port);
+        LOG.log(Level.INFO, "LifecycleListener: contextInitialized() HOSTNAME: {1} PORT: {0} APPNAME: {1}", new Object[]{hostName, port, appName});
     }
 
     @Override

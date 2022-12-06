@@ -48,12 +48,9 @@ public class DataInitializer {
         
         
         Integer port = JcAppConfig.getINSTANCE().getPort();
-        String hostName = JcAppConfig.getINSTANCE().getHostName();
-        String appName = JcAppConfig.getINSTANCE().getAppName();
 
         //For Testing, add values to filter here
         String ser;
-        String name;
         if (port == 4566) {
             ser = "SLV01234";
             dataMap.put("Nathan", new Dummy("Nathan", "Brill"));
@@ -63,9 +60,6 @@ public class DataInitializer {
             dataMap.put("Pieter", new Dummy("Pieter", "Oberholzer"));
             dataMap.put("Kostadin", new Dummy("Kostadin", "Petkov"));
         }
-        //Initialize J-Cluster for this app
-        JcFactory.initManager(appName, hostName, port);
-        LOG.log(Level.INFO, "DataInitializer: contextInitialized() PORT: {0} SER: {1}", new Object[]{port, ser});
 
         JcFactory.getManager().addFilter("loggerSerial", ser);
 
@@ -77,10 +71,6 @@ public class DataInitializer {
         }
     }
 
-//    @PreDestroy
-//    public void destroy() {
-//        JcFactory.getManager().destroy();
-//    }
     public HashMap<String, Dummy> getDataMap() {
         return dataMap;
     }

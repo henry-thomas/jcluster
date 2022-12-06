@@ -5,11 +5,9 @@
 package org.jcluster.cluster.hzUtils;
 
 import com.hazelcast.config.Config;
-import com.hazelcast.config.DiscoveryConfig;
 import com.hazelcast.config.JoinConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.LifecycleService;
 import com.hazelcast.map.IMap;
 import java.util.Map;
 import org.jcluster.bean.JcAppDescriptor;
@@ -36,9 +34,6 @@ public class HzController {
         map = hz.getMap("jc-app-map");
 
         map.addEntryListener(new ConnectionCallback(), true);
-        LifecycleService lifeCycle = hz.getLifecycleService();
-//        lifeCycle.addLifecycleListener(new HzLifeCycleListener());
-        hz.addDistributedObjectListener(new HzDistrObjectListener());
     }
 
     private void setDiscoveryConfig() {

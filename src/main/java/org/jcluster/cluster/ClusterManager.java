@@ -85,6 +85,18 @@ public final class ClusterManager {
         LOG.log(Level.INFO, "Added filter: [{0}] with value: [{1}]", new Object[]{filterName, String.valueOf(value)});
     }
 
+    public void remove(String filterName, Object value) {
+        HashSet<Object> filterSet = thisDescriptor.getFilterMap().get(filterName);
+        if (filterSet == null) {
+            LOG.log(Level.INFO, "Filter does not exist: [{0}] with value: [{1}]", new Object[]{filterName, String.valueOf(value)});
+            return;
+        }
+        filterSet.remove(value);
+        //update distributed map
+        appMap.put(thisDescriptor.getInstanceId(), thisDescriptor);
+        LOG.log(Level.INFO, "Removed filter: [{0}] with value: [{1}]", new Object[]{filterName, String.valueOf(value)});
+    }
+
     protected ClusterManager initConfig(String appName, String ipAddress, Integer port) {
         if (!running) {
             thisDescriptor.setAppName(appName);
@@ -134,6 +146,7 @@ public final class ClusterManager {
                 if (resp.getData() == null || !resp.getData().equals("pong")) {
                     JcAppDescriptor desc = conn.getDesc();
 
+                    JcAppInstanceData.getInstance().getOuboundConnections().remove(conn.getConnId());
                     onMemberLeave(desc);
                     onNewMemberJoin(desc);
 

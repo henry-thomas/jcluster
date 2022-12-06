@@ -10,16 +10,12 @@ import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jcluster.bean.JcAppDescriptor;
 import org.jcluster.cluster.ClusterManager;
 import org.jcluster.cluster.JcFactory;
-import org.jcluster.cluster.hzUtils.HzController;
-import org.jcluster.messages.ConnectionParam;
 import org.jcluster.messages.JcMessage;
 import org.jcluster.messages.JcMsgResponse;
 import org.jcluster.exception.sockets.JcResponseTimeoutException;
@@ -129,25 +125,25 @@ public class JcClientConnection implements Runnable {
 
     private boolean initHandshake() {
 
-        try {
-            Map<String, String> connInitMsg = new HashMap<>();
-
-            connInitMsg.put("connInit", hostName);
-            oos.writeObject(connInitMsg);
-
-            ConnectionParam connParam = (ConnectionParam) ois.readObject();
-
-            if (HzController.getInstance().getMap().containsKey(connParam.getAppId())) {
-                ConnectionParam connectionParam = new ConnectionParam(secure, manager.getThisDescriptor().getInstanceId());
-                oos.writeObject(connectionParam);
-                return true;
-            } else {
-                return false;
-            }
-
-        } catch (IOException | ClassNotFoundException ex) {
-            Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//        try {
+//            Map<String, String> connInitMsg = new HashMap<>();
+//
+//            connInitMsg.put("connInit", hostName);
+//            oos.writeObject(connInitMsg);
+//
+//            ConnectionParam connParam = (ConnectionParam) ois.readObject();
+//
+//            if (HzController.getInstance().getMap().containsKey(connParam.getAppId())) {
+//                ConnectionParam connectionParam = new ConnectionParam(secure, manager.getThisDescriptor().getInstanceId());
+//                oos.writeObject(connectionParam);
+//                return true;
+//            } else {
+//                return false;
+//            }
+//
+//        } catch (IOException | ClassNotFoundException ex) {
+//            Logger.getLogger(JcClientConnection.class.getName()).log(Level.SEVERE, null, ex);
+//        }
         return false;
     }
 
