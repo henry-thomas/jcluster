@@ -45,13 +45,7 @@ public class DataInitializer {
             bigData.add("1234567890_" + i);
         }
 
-        //These properties should be stored in your server configuration.
-        //E.G. in Payara, in DAC, in server-config -> System Properties
-        //Add them there.
-        //If someone can think of a better way, please mention.
         
-        //They are read by JcAppConfig, so all accessible from there throughout
-        //the project.
         
         Integer port = JcAppConfig.getINSTANCE().getPort();
         String hostName = JcAppConfig.getINSTANCE().getHostName();
