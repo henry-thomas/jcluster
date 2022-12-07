@@ -4,7 +4,7 @@
  */
 package com.mypower24.test2.impl;
 
-import com.mypower24.test2.controller.DataInitializer;
+import org.jcluster.core.JcLifeCycleHooks;
 import com.mypower24.test2.controller.entity.Dummy;
 import javax.ejb.Stateless;
 import com.mypower24.test2.interfaces.IMoreBusinessMethods;
@@ -18,7 +18,7 @@ import javax.inject.Inject;
 public class AnotherBusinessMethodImpl implements IMoreBusinessMethods {
 
     @Inject
-    DataInitializer data;
+    JcLifeCycleHooks data;
 
     @Override
     public Dummy execAnotherBusinessMethod(String name) {

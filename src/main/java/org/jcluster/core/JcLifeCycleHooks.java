@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.mypower24.test2.controller;
+package org.jcluster.core;
 
 import com.mypower24.test2.controller.entity.Dummy;
 import java.util.ArrayList;
@@ -24,9 +24,9 @@ import org.jcluster.core.config.JcAppConfig;
  */
 @Singleton
 @Startup
-public class DataInitializer {
+public class JcLifeCycleHooks {
 
-    private static final Logger LOG = Logger.getLogger(DataInitializer.class.getName());
+    private static final Logger LOG = Logger.getLogger(JcLifeCycleHooks.class.getName());
 
     private final HashMap<String, Dummy> dataMap = new HashMap<>();
 
@@ -45,14 +45,13 @@ public class DataInitializer {
             bigData.add("1234567890_" + i);
         }
 
-        
         Integer port = JcAppConfig.getINSTANCE().getPort();
         String hostName = JcAppConfig.getINSTANCE().getHostName();
         String appName = JcAppConfig.getINSTANCE().getAppName();
 
         //Initialize J-Cluster for this app
         JcFactory.initManager(appName, hostName, port);
-        LOG.log(Level.INFO, "LifecycleListener: contextInitialized() HOSTNAME: {1} PORT: {0} APPNAME: {1}", new Object[]{hostName, port, appName});
+        LOG.log(Level.INFO, "LifecycleListener: contextInitialized() HOSTNAME: {0} PORT: {1} APPNAME: {2}", new Object[]{hostName, port, appName});
 
         //For Testing, add values to filter here
         String ser;
@@ -90,6 +89,12 @@ public class DataInitializer {
 
     public List<String> getBigData() {
         return bigData;
+    }
+
+    @PreDestroy
+    public void destroy() {
+        JcFactory.getManager().destroy();
+        LOG.info("DataInitializer: destroy()");
     }
 
 }
