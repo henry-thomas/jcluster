@@ -17,7 +17,7 @@
         <servlet-name>Faces Servlet</servlet-name>
         <url-pattern>*.xhtml</url-pattern>
     </servlet-mapping>
-    <listener>
+<!--    <listener>
         <listener-class>org.jcluster.core.LifecycleListener</listener-class>
-    </listener>
+    </listener>-->
 </web-app>
