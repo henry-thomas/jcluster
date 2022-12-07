@@ -10,13 +10,13 @@ import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.inject.Named;
-import org.jcluster.messages.JcMessage;
+import org.jcluster.core.messages.JcMessage;
 import com.mypower24.test2.interfaces.IBusinessMethods;
 import com.mypower24.test2.interfaces.IMoreBusinessMethods;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
-import org.jcluster.cluster.JcFactory;
+import org.jcluster.core.cluster.JcFactory;
 
 /**
  *

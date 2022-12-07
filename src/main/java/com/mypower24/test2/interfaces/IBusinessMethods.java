@@ -6,8 +6,8 @@ package com.mypower24.test2.interfaces;
 
 import java.io.Serializable;
 import javax.ejb.Remote;
-import org.jcluster.annotation.JcInstanceFilter;
-import org.jcluster.annotation.JcRemote;
+import org.jcluster.lib.annotation.JcInstanceFilter;
+import org.jcluster.lib.annotation.JcRemote;
 
 /**
  *

@@ -18,6 +18,6 @@
         <url-pattern>*.xhtml</url-pattern>
     </servlet-mapping>
     <listener>
-        <listener-class>org.jcluster.LifecycleListener</listener-class>
+        <listener-class>org.jcluster.core.LifecycleListener</listener-class>
     </listener>
 </web-app>
