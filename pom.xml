@@ -4,7 +4,7 @@
     <groupId>com.mypower24</groupId>
     <artifactId>jcluster</artifactId>
     <version>1.0.1</version>
-    <packaging>war</packaging>
+    <!--<packaging>war</packaging>-->
     <name>jcluster</name>
     
     <properties>

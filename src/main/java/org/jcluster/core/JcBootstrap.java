@@ -6,7 +6,6 @@ package org.jcluster.core;
 
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ClassInfo;
-import com.mypower24.test2.interfaces.IBusinessMethods;
 import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
