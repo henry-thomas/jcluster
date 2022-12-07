@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  *
  * They are read by JcAppConfig, so all accessible from there throughout the
  * project.
- * 
+ *
  */
 public class JcAppConfig {
 
@@ -27,6 +27,7 @@ public class JcAppConfig {
     private final Integer port;
     private final String hostName;
     private final String appName;
+    private final String scanPackageName;
     private final Long jcLastSendMaxTimeout;
 
     private static final JcAppConfig INSTANCE = new JcAppConfig();
@@ -36,6 +37,7 @@ public class JcAppConfig {
         this.port = Integer.valueOf(readProp("JC_PORT"));
         this.hostName = readProp("JC_HOSTNAME");
         this.appName = readProp("JC_APP_NAME");
+        this.scanPackageName = readProp("JC_SCAN_PKG_NAME");
         this.jcLastSendMaxTimeout = Long.valueOf(readProp("JC_LAST_SEND_MAX_TIMEOUT"));
     }
 
@@ -70,6 +72,10 @@ public class JcAppConfig {
 
     public Long getJcLastSendMaxTimeout() {
         return jcLastSendMaxTimeout;
+    }
+
+    public String getScanPackageName() {
+        return scanPackageName;
     }
 
 }

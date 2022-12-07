@@ -19,6 +19,7 @@ import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.Extension;
+import org.jcluster.core.config.JcAppConfig;
 import org.jcluster.lib.annotation.JcRemote;
 import org.jcluster.core.proxy.JcRemoteExecutionHandler;
 
@@ -34,7 +35,7 @@ public class JcBootstrap implements Extension {
     private List<Class> getAllJcRemoteClasses(String pkg) {
         List<Class> classList = new ArrayList<>();
         try {
-            ClassPath classPath = ClassPath.from(IBusinessMethods.class.getClassLoader());
+            ClassPath classPath = ClassPath.from(JcBootstrap.class.getClassLoader());
             Set<ClassInfo> classes = classPath.getAllClasses();
             for (ClassInfo c : classes) {
                 if (c.getName().startsWith(pkg)) {
@@ -59,7 +60,11 @@ public class JcBootstrap implements Extension {
     public void afterBeanDiscovery(@Observes AfterBeanDiscovery event, BeanManager manager) {
         LOG.info("JcBootstrap afterBeanDiscovery()");
 
+        String scanPackageName = JcAppConfig.getINSTANCE().getScanPackageName();
+        
         long scanStart = System.currentTimeMillis();
+        
+        
         List<Class> jcRemoteInterfaceList = getAllJcRemoteClasses("com.mypower24.test2.interfaces");
 
         long scanEnd = System.currentTimeMillis();
